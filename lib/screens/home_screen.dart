@@ -1,10 +1,11 @@
-import 'package:dots_indicator/dots_indicator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:putko/listing_view/ad_view_screen.dart';
 import 'package:putko/screens/booking_details_screen.dart';
-import 'package:putko/widget/app_nav_bar.dart';
-import '../model/property.dart';
+// import 'package:putko/screens/booking_details_screen.dart';
+// import '../model/property.dart';
 import '../shared/theme/colors.dart';
 import '../widget/property_type_list.dart';
 
@@ -13,24 +14,23 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
+    final size = MediaQuery.of(context).size;
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: const AppNavBar(),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        toolbarHeight: 148,
+        toolbarHeight: 160,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             color: appWhite,
             boxShadow: [
               BoxShadow(
-                color: appBlack.withOpacity(0.1),
-                blurRadius: 1.0,
-                spreadRadius: 1.0,
-                offset: const Offset(0.0, 1.0)
+                  color: appBlack.withOpacity(0.1),
+                  blurRadius: 1.0,
+                  spreadRadius: 1.0,
+                  offset: const Offset(0.0, 1.0)
               )
             ],
           ),
@@ -39,13 +39,13 @@ class HomeScreen extends StatelessWidget {
 
               const Positioned(
                 bottom: 0.0,
-                  left: 0.0,
-                  right: 0.0,
-                  child: PropertyTypeList(),
+                left: 0.0,
+                right: 0.0,
+                child: PropertyTypeList(),
               ),
 
               Positioned(
-                top: 70.0,
+                  top: 70.0,
                   right: 8.0,
                   child: IconButton(
                     onPressed: () {},
@@ -59,17 +59,9 @@ class HomeScreen extends StatelessWidget {
                 top: 60.0,
                 child: GestureDetector(
                   onTap: () {
-                    // context.pushNamed('booking-details');
-                    // Navigator.pushReplacement(
-                    //   context, PageRouteBuilder(
-                    //   pageBuilder: (e)=> BookingDetailsScreen(),
-                    // ),
-                    // );
-                    Navigator.pushReplacement(
+                    Navigator.push(
                       context,
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => const BookingDetailsScreen(),
-                      ),
+                      MaterialPageRoute(builder: (context) => const BookingDetailsScreen()),
                     );
                   },
                   child: Hero(
@@ -97,7 +89,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                         const Icon(Icons.search),
+                          const Icon(Icons.search),
                           const SizedBox(width: 6.0),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,12 +116,28 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: Property.sampleData.length,
-            itemBuilder: (context, index) {
-            final property = Property.sampleData[index];
-            return PropertyCard(property: property);
-            },
+        child: ValueListenableBuilder(
+          valueListenable: PropertyTypeList.selectedType,
+          builder: (context, value, child) {
+            return StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection("postings")
+                  .where("propertyType", isEqualTo: value)
+                  .snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                return ListView(
+                  children: snapshot.data!.docs.map((snap) {
+                    return PropertyCard(snap: snap);
+                  }).toList(),
+                );
+              },
+            );
+          },
         ),
       ),
     );
@@ -138,9 +146,10 @@ class HomeScreen extends StatelessWidget {
 
 
 class PropertyCard extends StatefulWidget {
-  final Property property;
 
-  const PropertyCard({Key? key, required this.property}) : super(key: key);
+  final QueryDocumentSnapshot snap;
+
+  const PropertyCard({super.key, required this.snap});
 
   @override
   State<PropertyCard> createState() => _PropertyCardState();
@@ -169,7 +178,11 @@ class _PropertyCardState extends State<PropertyCard> {
           onTap: (){
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const AdViewScreen()),
+              MaterialPageRoute(
+                builder: (context) => AdViewScreen(
+                  id: widget.snap.id,
+                ),
+              ),
             );
           },
           child: Stack(
@@ -188,34 +201,9 @@ class _PropertyCardState extends State<PropertyCard> {
                       currentPage = value;
                     });
                   },
-                  children: widget.property.photoUrls.map((imageUrl) {
+                  children: (widget.snap['photos'] as List<dynamic>).map<Widget>((imageUrl) {
                     return Image.network(imageUrl, fit: BoxFit.cover);
                   }).toList(),
-                ),
-              ),
-              Positioned(
-                bottom: 8.0,
-                left: 0.0,
-                right: 0.0,
-                child: DotsIndicator(
-                  dotsCount: widget.property.photoUrls.length,
-                  position: currentPage,
-                  onTap: (index) {
-                    controller.animateToPage(
-                      index,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeIn,
-                    );
-                  },
-                  decorator: DotsDecorator(
-                    color: colorScheme.onSecondary,
-                    activeColor: colorScheme.secondary,
-                    size: const Size.square(8.0),
-                    activeSize: const Size(12.0, 8.0),
-                    activeShape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
                 ),
               ),
             ],
@@ -226,20 +214,19 @@ class _PropertyCardState extends State<PropertyCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '${widget.property.country}, ${widget.property.city}',
+              Text(widget.snap['country'] + widget.snap['town'],
                 style: textTheme.bodyLarge!.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8.0),
               Text(
-                widget.property.description,
+                widget.snap['description'],
               ),
               const SizedBox(height: 8.0),
-              Text(
-                widget.property.amenities.join(', '),
-              ),
+              // Text(
+              //   widget.snap['amenities'].join(', '),
+              // ),
             ],
           ),
         ),

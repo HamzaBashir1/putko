@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:putko/listing_screen/component/property_description.dart';
 
 class TitleDescribe extends StatefulWidget {
-  const TitleDescribe({super.key});
+  final String postingId;
+  const TitleDescribe({super.key, required this.postingId});
 
   @override
   State<TitleDescribe> createState() => _TitleDescribeState();
@@ -19,6 +21,7 @@ class _TitleDescribeState extends State<TitleDescribe> {
 
   int _selectedCount = 0;
 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -51,14 +54,39 @@ class _TitleDescribeState extends State<TitleDescribe> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4FBE9F), // Add background color
                   ),
-                  onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => PropertyDescription()),
-                      );
+                  onPressed: () async {
+                    List<String> highlights = [];
+
+                    if (_isSelected1) {
+                      highlights.add('Peaceful');
+                    }
+                    if (_isSelected2) {
+                      highlights.add('Unique');
+                    }
+                    if (_isSelected3) {
+                      highlights.add('Family-friendly');
+                    }
+                    if (_isSelected4) {
+                      highlights.add('Stylish');
+                    }
+                    if (_isSelected5) {
+                      highlights.add('Central');
+                    }
+                    if (_isSelected6) {
+                      highlights.add('Spacious');
+                    }
+
+                    await _firestore.collection('postings').doc(widget.postingId).set({
+                      'highlights': highlights,
+                    }, SetOptions(merge: true));
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => PropertyDescription(postingId: widget.postingId)),
+                    );
                   },
                   child: Text('Next', style: TextStyle(color: Colors.white),),
-                )
+                ),
               ],
             ),
           ),

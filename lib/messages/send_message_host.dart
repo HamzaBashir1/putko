@@ -1,17 +1,49 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:putko/messages/message_home.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:putko/listing_screen/component/photos.dart';
+import 'package:putko/messages/inbox_screen.dart';
 import 'package:putko/widget/common_button.dart';
 
 class SendMessageHost extends StatefulWidget {
-  const SendMessageHost({super.key});
+  final DocumentSnapshot<Map<String, dynamic>> documentSnapshot;
+  const SendMessageHost({super.key, required this.documentSnapshot});
 
   @override
   State<SendMessageHost> createState() => _SendMessageHostState();
 }
 
 class _SendMessageHostState extends State<SendMessageHost> {
+  int index = 0;
   final _controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  User? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentUser();
+    _getUsername();
+  }
+  User? user;
+  String? username;
+
+
+  _getUsername() async {
+    user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userData = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+      setState(() {
+        username = userData['username'];
+      });
+    }
+  }
+
+  void _getCurrentUser() async {
+    _currentUser = _auth.currentUser;
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +61,11 @@ class _SendMessageHostState extends State<SendMessageHost> {
                 Column(
                   children: [
                     Text(
-                      "Experience in Buda",
+                      "Experience in ${widget.documentSnapshot["town"]}",
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      "Tiny home",
+                      "${widget.documentSnapshot["title"]}",
                       style: TextStyle(fontSize: 12),
                     )
                   ],
@@ -41,8 +73,8 @@ class _SendMessageHostState extends State<SendMessageHost> {
                 Spacer(),
                 Column(
                   children: [
-                    Image.asset(
-                      "images/bed.jpg",
+                    Image.network(
+                      widget.documentSnapshot['photos'][index],
                       width: 100,
                       height: 100,
                     )
@@ -97,7 +129,7 @@ class _SendMessageHostState extends State<SendMessageHost> {
                 Column(
                   children: [
                     Text(
-                      "1 guest",
+                      "${widget.documentSnapshot['guests']} guest",
                       style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16),
                     )
                   ],
@@ -128,7 +160,7 @@ class _SendMessageHostState extends State<SendMessageHost> {
                 Row(
                   children: [
                     Text(
-                      "Hi {Host}! I'll be visiting...",
+                      "Hi ${username}! I'll be visiting...",
                       style: TextStyle(color: Colors.grey),
                     ),
                   ],
@@ -158,16 +190,22 @@ class _SendMessageHostState extends State<SendMessageHost> {
               height: 20,
             ),
             CommonButton(
-              onTap: () {
+              onTap: () async {
                 if (_formKey.currentState!.validate()) {
+                  await FirebaseFirestore.instance.collection('conversations').doc().set({
+                    'message': _controller.text,
+                    'sender': _currentUser?.uid, // replace with the actual sender's ID or name
+                    'timestamp': Timestamp.now(),
+                    'userId': _currentUser?.uid
+                  });
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => MessageHome()),
+                    MaterialPageRoute(builder: (context) => InboxScreen(documentSnapshot: widget.documentSnapshot)),
                   );
                 }
               },
               buttonText: "Send Message",
-            )
+            ),
           ],
         ),
       ),

@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "128890900587",
+    "project_id": "putko-b4a4e",
+    "storage_bucket": "putko-b4a4e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128890900587:android:292891d202e2162233e12e",
+        "android_client_info": {
+          "package_name": "com.hamza.putko"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "128890900587-gc2cplj006fatbl5tm7sc22975rord98.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hamza.putko",
+            "certificate_hash": "5e12bceb75514cef07328c242157d09b2b050b3d"
+          }
+        },
+        {
+          "client_id": "128890900587-s7erjrk6sslv64l8g6c1nt8rcf9kpqv3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgMs1SdReOq1fnNQg-tzfBvrWe8z8EGFQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "128890900587-s7erjrk6sslv64l8g6c1nt8rcf9kpqv3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "128890900587-vpqom0s7frubdopjg080j2eevpomjm4u.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.hamza.putko"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

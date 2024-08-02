@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:putko/today_screen/today_screen.dart';
 import 'package:putko/widget/common_button.dart';
-import 'package:putko/widget/host_navbar.dart';
+import 'package:putko/widget/host_home_screen.dart';
 
 import '../listings.dart';
 
@@ -12,6 +15,30 @@ class Thanks extends StatefulWidget {
 }
 
 class _ThanksState extends State<Thanks> {
+
+  User? user;
+  String? username;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _getUsername();
+  }
+
+
+  _getUsername() async {
+    user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final userData = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+      setState(() {
+        username = userData.get('username'); // Use get() method to retrieve data from Firestore
+      });
+    }
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,27 +46,27 @@ class _ThanksState extends State<Thanks> {
       appBar: AppBar(
         backgroundColor: Colors.white,
       ),
-      bottomNavigationBar: HostNavbar(),
+      // bottomNavigationBar: HostNavbar(),
       body: Container(
-        margin: EdgeInsets.only(left: 20,right: 20,top: 10),
+        margin: const EdgeInsets.only(left: 20,right: 20,top: 10),
         child: Column(
           children: [
 
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
 
-            Spacer(),
+            const Spacer(),
 
-            Text("Congratulations, Hamza!",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),),
+            Text("Congratulations, ${username?? ''}", style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 30),), // Use string interpolation to display username
 
-            Text("From one Host to another - welcome abroad. Thanks you for sharing your home and helping to create increadible experiences for ou guest.",
-            style: TextStyle(
-              fontSize: 16
+            const Text("From one Host to another - welcome abroad. Thanks you for sharing your home and helping to create incredible experiences for our guests.",
+              style: TextStyle(
+                  fontSize: 16
+              ),
             ),
-            ),
 
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
 
@@ -49,12 +76,12 @@ class _ThanksState extends State<Thanks> {
               {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => Listings()),
+                  MaterialPageRoute(builder: (context) => const HostHomeScreen()),
                 );
               },
             ),
 
-            Spacer(),
+            const Spacer(),
 
           ],
         ),

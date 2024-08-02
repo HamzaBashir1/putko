@@ -6,7 +6,7 @@ import '../model/booking_steps.dart';
 class SelectGuestsWidget extends StatefulWidget {
   const SelectGuestsWidget({
     super.key,
-    required this.step,
+    required this.step, required Null Function(dynamic guestCount) onGuestCountSelected,
   });
 
   final BookingSteps step;

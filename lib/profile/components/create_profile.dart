@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:putko/widget/common_button.dart';
@@ -15,6 +18,7 @@ class _CreateProfileState extends State<CreateProfile> {
 
   //image shared preference
   File? _image;
+  String? _imageUrl;
 
   Future<void> _selectImage() async {
     final picker = ImagePicker();
@@ -22,35 +26,58 @@ class _CreateProfileState extends State<CreateProfile> {
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
-        _saveImageToSharedPreferences(_image!.path);
+        _uploadImageToFirebaseStorage(_image!);
       }
     });
   }
 
-  Future<void> _saveImageToSharedPreferences(String imagePath) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('image_path', imagePath);
+  Future<void> _uploadImageToFirebaseStorage(File image) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final storageRef = FirebaseStorage.instance.ref();
+      final imageRef = storageRef.child('users/${user.uid}/profile_image');
+      await imageRef.putFile(image);
+      final imageUrl = await imageRef.getDownloadURL();
+      await _saveImageUrlToFirestore(imageUrl);
+    }
   }
 
-  Future<void> _loadImageFromSharedPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    final imagePath = prefs.getString('image_path');
-    if (imagePath != null) {
+  Future<void> _saveImageUrlToFirestore(String imageUrl) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'image_url': imageUrl}, SetOptions(merge: true));
       setState(() {
-        _image = File(imagePath);
+        _imageUrl = imageUrl;
       });
     }
   }
 
+  Future<void> _loadImageFromFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _imageUrl = docSnap['image_url'];
+        });
+      }
+    }
+  }
+
   //school info shared preference
-  final _schoolcontroller = TextEditingController();
   String _schoolName = '';
+  final _schoolcontroller = TextEditingController();
   Future<void> _saveSchoolName(String schoolName) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('school_name', schoolName);
-    setState(() {
-      _schoolName = schoolName;
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'school_name': schoolName}, SetOptions(merge: true));
+      setState(() {
+        _schoolName = schoolName;
+      });
+    }
   }
 
   Future<void> _loadSchoolName() async {
@@ -63,35 +90,50 @@ class _CreateProfileState extends State<CreateProfile> {
   //work shared preference
   String _work = '';
   Future<void> _saveWork(String work) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('work', work);
-    setState(() {
-      _work = work;
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'work': work}, SetOptions(merge: true));
+    }
   }
 
   Future<void> _loadWork() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _work = prefs.getString('work') ?? '';
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _work = docSnap['work'] ?? '';
+        });
+      }
+    }
   }
 
   //address shared preference
   String _address = '';
   Future<void> _saveAddress(String address) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('address', address);
-    setState(() {
-      _address = address;
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'address': address}, SetOptions(merge: true));
+      setState(() {
+        _address = address;
+      });
+    }
   }
 
   Future<void> _loadAddress() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _address = prefs.getString('address') ?? '';
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _address = docSnap['address'] ?? '';
+        });
+      }
+    }
   }
 
   //useless skill shared preference
@@ -99,18 +141,29 @@ class _CreateProfileState extends State<CreateProfile> {
   final _uselessSkillController = TextEditingController();
 
   Future<void> _saveUselessSkill(String uselessSkill) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('useless_skill', uselessSkill);
-    setState(() {
-      _uselessSkill = uselessSkill;
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'useless_skill': uselessSkill}, SetOptions(merge: true));
+      setState(() {
+        _uselessSkill = uselessSkill;
+      });
+      _uselessSkillController.text = uselessSkill;
+    }
   }
 
   Future<void> _loadUselessSkill() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _uselessSkill = prefs.getString('useless_skill') ?? '';
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _uselessSkill = docSnap['useless_skill']?? '';
+        });
+        _uselessSkillController.text = _uselessSkill;
+      }
+    }
   }
 
   //biography title shared preference
@@ -118,18 +171,29 @@ class _CreateProfileState extends State<CreateProfile> {
   final _biographyTitleController = TextEditingController();
 
   Future<void> _saveBiographyTitle(String biographyTitle) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('biography_title', biographyTitle);
-    setState(() {
-      _biographyTitle = biographyTitle;
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'biography_title': biographyTitle}, SetOptions(merge: true));
+      setState(() {
+        _biographyTitle = biographyTitle;
+      });
+      _biographyTitleController.text = biographyTitle;
+    }
   }
 
   Future<void> _loadBiographyTitle() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _biographyTitle = prefs.getString('biography_title') ?? '';
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _biographyTitle = docSnap['biography_title']?? '';
+        });
+        _biographyTitleController.text = _biographyTitle;
+      }
+    }
   }
 
   //spend too much time shared preference
@@ -137,18 +201,29 @@ class _CreateProfileState extends State<CreateProfile> {
   final _spendTooMuchTimeController = TextEditingController();
 
   Future<void> _saveSpendTooMuchTime(String spendTooMuchTime) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('spend_too_much_time', spendTooMuchTime);
-    setState(() {
-      _spendTooMuchTime = spendTooMuchTime;
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'spend_too_much_time': spendTooMuchTime}, SetOptions(merge: true));
+      setState(() {
+        _spendTooMuchTime = spendTooMuchTime;
+      });
+      _spendTooMuchTimeController.text = spendTooMuchTime;
+    }
   }
 
   Future<void> _loadSpendTooMuchTime() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _spendTooMuchTime = prefs.getString('spend_too_much_time')?? '';
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _spendTooMuchTime = docSnap['spend_too_much_time']?? '';
+        });
+        _spendTooMuchTimeController.text = _spendTooMuchTime;
+      }
+    }
   }
 
   //pets shared preference
@@ -156,18 +231,29 @@ class _CreateProfileState extends State<CreateProfile> {
   final _petsController = TextEditingController();
 
   Future<void> _savePets(String pets) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('pets', pets);
-    setState(() {
-      _pets = pets;
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'pets': pets}, SetOptions(merge: true));
+      setState(() {
+        _pets = pets;
+      });
+      _petsController.text = pets;
+    }
   }
 
   Future<void> _loadPets() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _pets = prefs.getString('pets')?? '';
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _pets = docSnap['pets']?? '';
+        });
+        _petsController.text = _pets;
+      }
+    }
   }
 
   //text shared preference
@@ -175,25 +261,36 @@ class _CreateProfileState extends State<CreateProfile> {
   final _textController = TextEditingController();
 
   Future<void> _saveText(String text) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('text', text);
-    setState(() {
-      _text = text;
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'about': text}, SetOptions(merge: true));
+      setState(() {
+        _text = text;
+      });
+      _textController.text = text;
+    }
   }
 
   Future<void> _loadText() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _text = prefs.getString('text')?? '';
-    });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _text = docSnap['about']?? '';
+        });
+        _textController.text = _text;
+      }
+    }
   }
 
 
   @override
   void initState() {
     super.initState();
-    _loadImageFromSharedPreferences();
+    _loadImageFromFirestore();
     _loadSchoolName();
     _loadWork();
     _loadAddress();
@@ -211,19 +308,21 @@ class _CreateProfileState extends State<CreateProfile> {
       appBar: AppBar(
         backgroundColor: Colors.white,
       ),
-        bottomNavigationBar: BottomAppBar(
-          color: Colors.white,
-          child: CommonButton(
-            onTap: () {
-              // Save all the data to shared preferences
-              _saveImageToSharedPreferences(_image!.path);
-              _saveSchoolName(_schoolcontroller.text);
-              _saveWork(_work);
-              _saveAddress(_address);
-            },
-            buttonText: "Done",
-          ),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        child: CommonButton(
+          onTap: () async{
+            // Save all the data to shared preferences
+            if (_image != null) {
+              await _uploadImageToFirebaseStorage(_image!);
+            }
+            await _saveSchoolName(_schoolcontroller.text);
+            _saveWork(_work);
+            _saveAddress(_address);
+          },
+          buttonText: "Done",
         ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -238,17 +337,12 @@ class _CreateProfileState extends State<CreateProfile> {
                         left: constraints.maxWidth * 0.3,
                         right: constraints.maxWidth * 0.3,
                       ),
-                      child: CircleAvatar(
+                      child: _image != null
+                          ? Image.network(_imageUrl!)
+                          : CircleAvatar(
                         radius: constraints.maxWidth * 0.2,
                         backgroundColor: Colors.black,
-                        child: _image!= null
-                            ? Image.file(
-                          _image!,
-                          fit: BoxFit.cover,
-                          width: constraints.maxWidth * 0.4,
-                          height: constraints.maxWidth * 0.4,
-                        )
-                            : const Text(
+                        child: const Text(
                           'H',
                           style: TextStyle(
                             fontSize: 30,
@@ -294,7 +388,7 @@ class _CreateProfileState extends State<CreateProfile> {
                               title: const Text("School Information"),
                               content: TextField(
                                 controller: _schoolcontroller,
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   labelText: 'Enter your school name',
                                   border: OutlineInputBorder(),
                                 ),
@@ -314,13 +408,13 @@ class _CreateProfileState extends State<CreateProfile> {
                       },
                       child: Row(
                         children: [
-                          Column(
+                          const Column(
                             children: [
                               Icon(Icons.school)
                             ],
                           ),
                           Padding(
-                            padding: EdgeInsets.only(left: 14),
+                            padding: const EdgeInsets.only(left: 14),
                             child: Column(
                               children: [
                                 Text(
@@ -349,7 +443,7 @@ class _CreateProfileState extends State<CreateProfile> {
                             title: const Text("What do you do for work?"),
                             content: TextField(
                               controller: _workController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Enter your work',
                                 border: OutlineInputBorder(),
                               ),
@@ -371,18 +465,18 @@ class _CreateProfileState extends State<CreateProfile> {
                       padding: const EdgeInsets.only(top: 20, bottom: 20),
                       child: Row(
                         children: [
-                          Column(
+                          const Column(
                             children: [
                               Icon(Icons.work)
                             ],
                           ),
                           Padding(
-                            padding: EdgeInsets.only(left: 14),
+                            padding: const EdgeInsets.only(left: 14),
                             child: Column(
                               children: [
                                 Text(
                                   _work.isEmpty? "My work" : _work,
-                                  style: TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                               ],
                             ),
@@ -406,7 +500,7 @@ class _CreateProfileState extends State<CreateProfile> {
                             title: const Text("Where you live"),
                             content: TextField(
                               controller: _addressController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Enter your address',
                                 border: OutlineInputBorder(),
                               ),
@@ -428,18 +522,18 @@ class _CreateProfileState extends State<CreateProfile> {
                       padding: const EdgeInsets.only(top: 20, bottom: 20),
                       child: Row(
                         children: [
-                          Column(
+                          const Column(
                             children: [
                               Icon(Icons.map)
                             ],
                           ),
                           Padding(
-                            padding: EdgeInsets.only(left: 14),
+                            padding: const EdgeInsets.only(left: 14),
                             child: Column(
                               children:[
                                 Text(
                                   _address.isEmpty? "Where live" : _address,
-                                  style: TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                               ],
                             ),
@@ -462,7 +556,7 @@ class _CreateProfileState extends State<CreateProfile> {
                             title: const Text("What's your most useless skill?"),
                             content: TextField(
                               controller: _uselessSkillController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'My most useless skill',
                                 border: OutlineInputBorder(),
                               ),
@@ -484,18 +578,18 @@ class _CreateProfileState extends State<CreateProfile> {
                       padding: const EdgeInsets.only(top: 20, bottom: 20),
                       child: Row(
                         children: [
-                          Column(
+                          const Column(
                             children: [
                               Icon(Icons.pin)
                             ],
                           ),
                           Padding(
-                            padding: EdgeInsets.only(left: 14),
+                            padding: const EdgeInsets.only(left: 14),
                             child: Column(
                               children:[
                                 Text(
                                   _uselessSkill.isEmpty? "My most useless skill" : _uselessSkill,
-                                  style: TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                               ],
                             ),
@@ -518,7 +612,7 @@ class _CreateProfileState extends State<CreateProfile> {
                             title: const Text("What would your biagraphy title be?"),
                             content: TextField(
                               controller: _biographyTitleController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'My biography title would be',
                                 border: OutlineInputBorder(),
                               ),
@@ -540,18 +634,18 @@ class _CreateProfileState extends State<CreateProfile> {
                       padding: const EdgeInsets.only(top: 20, bottom: 20),
                       child: Row(
                         children: [
-                          Column(
+                          const Column(
                             children: [
                               Icon(Icons.chrome_reader_mode_outlined)
                             ],
                           ),
                           Padding(
-                            padding: EdgeInsets.only(left: 14),
+                            padding: const EdgeInsets.only(left: 14),
                             child: Column(
                               children:[
                                 Text(
                                   _biographyTitle.isEmpty? "My biagraphy title would be" : _biographyTitle,
-                                  style: TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                               ],
                             ),
@@ -574,7 +668,7 @@ class _CreateProfileState extends State<CreateProfile> {
                             title: const Text("what do you spend too much time doing?"),
                             content: TextField(
                               controller: _spendTooMuchTimeController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'I spend too much time.',
                                 border: OutlineInputBorder(),
                               ),
@@ -596,18 +690,18 @@ class _CreateProfileState extends State<CreateProfile> {
                       padding: const EdgeInsets.only(top: 20, bottom: 20),
                       child: Row(
                         children: [
-                          Column(
+                          const Column(
                             children: [
                               Icon(Icons.alarm)
                             ],
                           ),
                           Padding(
-                            padding: EdgeInsets.only(left: 14),
+                            padding: const EdgeInsets.only(left: 14),
                             child: Column(
                               children:[
                                 Text(
                                   _spendTooMuchTime.isEmpty? "I Spend too much time" : _spendTooMuchTime,
-                                  style: TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                               ],
                             ),
@@ -630,7 +724,7 @@ class _CreateProfileState extends State<CreateProfile> {
                             title: const Text("Do you have any pets? in your life?"),
                             content: TextField(
                               controller: _petsController,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'Pets.',
                                 border: OutlineInputBorder(),
                               ),
@@ -652,18 +746,18 @@ class _CreateProfileState extends State<CreateProfile> {
                       padding: const EdgeInsets.only(top: 20, bottom: 20),
                       child: Row(
                         children: [
-                          Column(
+                          const Column(
                             children: [
                               Icon(Icons.pets)
                             ],
                           ),
                           Padding(
-                            padding: EdgeInsets.only(left: 14),
+                            padding: const EdgeInsets.only(left: 14),
                             child: Column(
                               children:[
                                 Text(
                                   _pets.isEmpty? "Pets" : _pets,
-                                  style: TextStyle(fontSize: 16),
+                                  style: const TextStyle(fontSize: 16),
                                 ),
                               ],
                             ),
@@ -700,7 +794,7 @@ class _CreateProfileState extends State<CreateProfile> {
                         child: TextField(
                           maxLines: 5,
                           controller: _textController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             border: InputBorder.none, // remove the default border
                             hintText: 'Enter your text here', // add a hint text
                           ),

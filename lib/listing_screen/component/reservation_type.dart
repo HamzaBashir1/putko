@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:putko/listing_screen/component/guest_type.dart';
 
-
 class ReservationType extends StatefulWidget {
-  const ReservationType({super.key});
+  final String postingId;
+  const ReservationType({super.key, required this.postingId});
 
   @override
   State<ReservationType> createState() => _ReservationTypeState();
@@ -12,6 +13,8 @@ class ReservationType extends StatefulWidget {
 class _ReservationTypeState extends State<ReservationType> {
 
   String? _selectedReservationType;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -45,10 +48,14 @@ class _ReservationTypeState extends State<ReservationType> {
                   backgroundColor: const Color(0xFF4FBE9F), // Add background color
                 ),
                 onPressed: _selectedReservationType!= null
-                    ? () {
+                    ? () async {
+                  await _firestore.collection('postings').doc(widget.postingId).set({
+                    'reservationType': _selectedReservationType,
+                  }, SetOptions(merge: true));
+
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => GuestType()),
+                    MaterialPageRoute(builder: (context) => GuestType(postingId: widget.postingId)),
                   );
                 }
                     : null,

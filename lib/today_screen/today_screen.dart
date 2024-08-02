@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:putko/today_screen/all_reservation.dart';
-import 'package:putko/widget/host_navbar.dart';
+import 'package:putko/widget/host_home_screen.dart';
 
 class TodayScreen extends StatefulWidget {
   const TodayScreen({super.key});
@@ -13,6 +15,28 @@ class _TodayScreenState extends State<TodayScreen> {
   String label = 'Today';
   int count = 0;
   bool isSelected = true;
+
+  User? user;
+  String? username;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _getUsername();
+  }
+
+
+  _getUsername() async {
+    user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final userData = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+      setState(() {
+        username = userData.get('username'); // Use get() method to retrieve data from Firestore
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +54,17 @@ class _TodayScreenState extends State<TodayScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const HostNavbar(),
+      // bottomNavigationBar: const HostNavbar(),
       body: Padding(
         padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const Row(
+               Row(
                 children: [
                   Text(
-                    "Welcome Back,\nHamza",
-                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                    "Welcome Back,\n$username",
+                    style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -68,7 +92,7 @@ class _TodayScreenState extends State<TodayScreen> {
                     const SizedBox(height: 20), // add some space between the tab bar and the tab bar view
                     Container(
                       height: 300, // adjust the height to your needs
-                      child: TabBarView(
+                      child: const TabBarView(
                         children: [
                           CheckingOutBody(),
                           CurrentlyHostingBody(),
@@ -205,10 +229,10 @@ class ResourceCard extends StatelessWidget {
   final String title;
 
   const ResourceCard({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.title,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -245,6 +269,8 @@ class ResourceCard extends StatelessWidget {
 }
 
 class CheckingOutBody extends StatelessWidget {
+  const CheckingOutBody({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -298,6 +324,8 @@ class CheckingOutBody extends StatelessWidget {
 }
 
 class CurrentlyHostingBody extends StatelessWidget {
+  const CurrentlyHostingBody({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Column(

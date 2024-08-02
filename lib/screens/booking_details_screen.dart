@@ -3,13 +3,19 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:putko/screens/home_screen.dart';
-// import 'package:models/models.dart';
 
 import '../model/booking_steps.dart';
 import '../shared/theme/colors.dart';
 import '../widget/select_date_widget.dart';
 import '../widget/select_destination_widget.dart';
 import '../widget/select_guests_widget.dart';
+
+// Mock function to simulate fetching filtered properties
+Future<List<String>> fetchFilteredProperties(String destination, DateTimeRange dateRange, int guestCount) async {
+  // Replace this with your actual data fetching logic
+  await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
+  return ['Property 1', 'Property 2', 'Property 3'];
+}
 
 class BookingDetailsScreen extends StatefulWidget {
   const BookingDetailsScreen({super.key});
@@ -20,6 +26,24 @@ class BookingDetailsScreen extends StatefulWidget {
 
 class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   var step = BookingSteps.selectDate;
+  String? selectedDestination;
+  DateTimeRange? selectedDateRange;
+  int? selectedGuestCount;
+
+  void _searchProperties() async {
+    if (selectedDestination != null && selectedDateRange != null && selectedGuestCount != null) {
+      List<String> results = await fetchFilteredProperties(
+        selectedDestination!,
+        selectedDateRange!,
+        selectedGuestCount!,
+      );
+      // Navigate to results page or update state to show results
+      print('Filtered Properties: $results');
+    } else {
+      // Show an error message or prompt user to complete all steps
+      print('Please complete all steps to search.');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,12 +57,12 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
           backgroundColor: Colors.transparent,
           automaticallyImplyLeading: false,
           leading: IconButton(
-            // onPressed: () => context.pop(),
             onPressed: () {
               Navigator.pushReplacement(
-                  context, PageRouteBuilder(
+                context,
+                PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
-              ),
+                ),
               );
             },
             icon: const Icon(Icons.close),
@@ -68,7 +92,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
         ),
         body: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
             child: Column(
               children: [
                 GestureDetector(
@@ -79,7 +103,14 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   },
                   child: Hero(
                     tag: 'search',
-                    child: SelectDestinationWidget(step: step),
+                    child: SelectDestinationWidget(
+                      step: step,
+                      onDestinationSelected: (destination) {
+                        setState(() {
+                          selectedDestination = destination;
+                        });
+                      },
+                    ),
                   ),
                 ),
                 GestureDetector(
@@ -88,7 +119,14 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                       step = BookingSteps.selectDate;
                     });
                   },
-                  child: SelectDateWidget(step: step),
+                  child: SelectDateWidget(
+                    step: step,
+                    onDateRangeSelected: (dateRange) {
+                      setState(() {
+                        selectedDateRange = dateRange;
+                      });
+                    },
+                  ),
                 ),
                 (step == BookingSteps.selectDate)
                     ? const SizedBox()
@@ -98,7 +136,14 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                       step = BookingSteps.selectGuest;
                     });
                   },
-                  child: SelectGuestsWidget(step: step),
+                  child: SelectGuestsWidget(
+                    step: step,
+                    onGuestCountSelected: (guestCount) {
+                      setState(() {
+                        selectedGuestCount = guestCount;
+                      });
+                    },
+                  ),
                 ),
               ],
             ),
@@ -116,15 +161,12 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
             children: [
               TextButton(
                 onPressed: () {
-                  if (step == BookingSteps.selectDestination) {
-                    setState(() {
-                      step = BookingSteps.selectGuest;
-                    });
-                  } else {
-                    setState(() {
-                      step = BookingSteps.selectDestination;
-                    });
-                  }
+                  setState(() {
+                    selectedDestination = null;
+                    selectedDateRange = null;
+                    selectedGuestCount = null;
+                    step = BookingSteps.selectDate;
+                  });
                 },
                 child: Text(
                   'Clear all',
@@ -135,9 +177,9 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                 ),
               ),
               FilledButton.icon(
-                onPressed: () {},
+                onPressed: _searchProperties,
                 style: FilledButton.styleFrom(
-                  backgroundColor: appRed,
+                  backgroundColor: appGreen,
                   minimumSize: const Size(100, 56.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),

@@ -101,7 +101,7 @@ class _CalendarOptionsSegmentedButtonState
           backgroundColor: MaterialStateProperty.resolveWith<Color>(
                 (Set<MaterialState> states) {
               if (states.contains(MaterialState.selected)) {
-                return appRed;
+                return appGreen;
               }
               return appGrey.withAlpha(100);
             },

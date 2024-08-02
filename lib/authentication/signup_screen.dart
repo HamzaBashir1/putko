@@ -1,7 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:putko/widget/common_button.dart';
-
+import 'package:putko/widget/guest_home_screen.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import '../screens/home_screen.dart';
+import '../shared/theme/colors.dart';
 import '../widget/custom_scaffold.dart';
 import 'login_screen.dart';
 
@@ -18,6 +26,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final fullNameController = TextEditingController();
+
     return CustomScaffold(
       child: Column(
         children: [
@@ -46,7 +59,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // get started text
-                      Text(
+                      const Text(
                         'Get Started',
                         style: TextStyle(
                           fontSize: 30.0,
@@ -65,6 +78,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           }
                           return null;
                         },
+                        controller: fullNameController,
                         decoration: InputDecoration(
                           label: const Text('Full Name'),
                           hintText: 'Enter Full Name',
@@ -96,6 +110,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           }
                           return null;
                         },
+                        controller: emailController,
                         decoration: InputDecoration(
                           label: const Text('Email'),
                           hintText: 'Enter Email',
@@ -129,6 +144,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           }
                           return null;
                         },
+                        controller: passwordController,
                         decoration: InputDecoration(
                           label: const Text('Password'),
                           hintText: 'Enter Password',
@@ -163,7 +179,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               });
                             },
                           ),
-                          Flexible(
+                          const Flexible(
                             child: Text(
                               'I agree to the processing of Personal data',
                               style: TextStyle(
@@ -183,7 +199,37 @@ class _SignupScreenState extends State<SignupScreen> {
                         width: double.infinity,
                         child: CommonButton(
                           buttonText: 'Sign Up',
-                          onTap: () {
+                          onTap: () async {
+                            
+                           try {
+                             await FirebaseAuth.instance.createUserWithEmailAndPassword(email: emailController.text, password: passwordController.text);
+
+                             // Get the current user
+                             final user = FirebaseAuth.instance.currentUser;
+
+                             // Create a Firestore document for the user
+                             final userData = {
+                               'username': fullNameController.text,
+                               'email': emailController.text,
+                               'createdAt': FieldValue.serverTimestamp(), // Add timestamp
+                             };
+
+                             await FirebaseFirestore.instance.collection('users').doc(user!.uid).set(userData);
+
+
+                             Fluttertoast.showToast(msg: "Successfully Signup",
+                             backgroundColor: appGreen);
+                             Navigator.push(
+                               context,
+                               MaterialPageRoute(
+                                 builder: (e) => const LoginScreen(),
+                               ),
+                             );
+                           } catch (error) {
+                             Fluttertoast.showToast(msg: error.toString(),
+                             backgroundColor: Colors.red);
+                           }
+                            
                             if (_formSignupKey.currentState!.validate() &&
                                 agreePersonalData) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -240,14 +286,141 @@ class _SignupScreenState extends State<SignupScreen> {
                         height: 30.0,
                       ),
                       // sign up social media logo
-                       Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Brand(Brands.facebook),
-                          Brand(Brands.google),
-                          Brand(Brands.apple_logo),
-                          // Logo(Logos.google),
-                          // Logo(Logos.apple)
+                          InkWell(
+                            onTap: () async {
+                              // try {
+                              //   final LoginResult result = await FacebookAuth.instance.login();
+                              //   if (result.accessToken!= null) {
+                              //     final String token = result.accessToken.toString();
+                              //     final AuthCredential credential = FacebookAuthProvider.credential(token);
+                              //
+                              //     try {
+                              //       final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+                              //       final User user = userCredential.user!;
+                              //       Fluttertoast.showToast(msg: 'Signed in with Facebook: ${user.uid}');
+                              //     } catch (e) {
+                              //       Fluttertoast.showToast(msg: 'Error signing in with Facebook: $e');
+                              //     }
+                              //   } else {
+                              //     Fluttertoast.showToast(msg: 'Failed to login with Facebook');
+                              //   }
+                              // } catch (e) {
+                              //   Fluttertoast.showToast(msg: 'Error signing in with Facebook: $e');
+                              // }
+                            },
+                            child: Brand(Brands.facebook),
+                          ),
+                          InkWell(
+                            onTap: () async {
+                              try {
+                                // Create a GoogleAuthProvider instance
+                                GoogleAuthProvider googleAuthProvider = GoogleAuthProvider();
+
+                                // Initialize the Google sign-in process
+                                final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+                                // Get the authentication token from the Google sign-in process
+                                final GoogleSignInAuthentication? googleAuth =
+                                await googleUser?.authentication;
+
+                                // Create a credential from the authentication token
+                                final credential = GoogleAuthProvider.credential(
+                                  idToken: googleAuth?.idToken,
+                                  accessToken: googleAuth?.accessToken,
+                                );
+
+                                // Sign in to Firebase with the credential
+                                await FirebaseAuth.instance.signInWithCredential(credential);
+
+                                // Get the current user
+                                final user = FirebaseAuth.instance.currentUser;
+
+                                // Create a Firestore document for the user
+                                final userData = {
+                                  'username': googleUser?.displayName,
+                                  'email': googleUser?.email,
+                                  'createdAt': FieldValue.serverTimestamp(), // Add timestamp
+                                };
+
+                                await FirebaseFirestore.instance.collection('users').doc(user!.uid).set(userData);
+
+
+                                // Show a success toast message
+                                Fluttertoast.showToast(
+                                  msg: "Signup Successfully",
+                                  backgroundColor: appGreen,
+                                );
+
+                                // Navigate to the home screen
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (e) => const GuestHomeScreen(),
+                                  ),
+                                );
+                              } catch (error) {
+                                // Show an error toast message
+                                Fluttertoast.showToast(
+                                  msg: error.toString(),
+                                  backgroundColor: Colors.red,
+                                );
+                              }
+                            },
+                            child: Brand(Brands.google),
+                          ),
+                          InkWell(
+                            onTap: () async {
+                              try {
+                                // Request Apple Sign-In
+                                final appleCredential = await SignInWithApple.getAppleIDCredential(
+                                  scopes: [
+                                    AppleIDAuthorizationScopes.email,
+                                    AppleIDAuthorizationScopes.fullName,
+                                  ],
+                                  webAuthenticationOptions: WebAuthenticationOptions(
+                                    redirectUri: Uri.parse('https://YOUR_DOMAIN.com/callbacks'),
+                                    clientId: 'YOUR_SERVICE_ID', // Replace with your Apple Service ID
+                                  ),
+                                );
+
+                                // Get the OAuth credential
+                                final oauthCredential = OAuthProvider('apple.com').credential(
+                                  idToken: appleCredential.identityToken,
+                                );
+
+                                // Sign in to Firebase with the OAuth credential
+                                final userCredential = await FirebaseAuth.instance.signInWithCredential(oauthCredential);
+
+                                // Get the current user
+                                final user = userCredential.user;
+
+                                // Create a Firestore document for the user
+                                final userData = {
+                                  'username': '${appleCredential.givenName} ${appleCredential.familyName}',
+                                  'email': appleCredential.email,
+                                  'createdAt': FieldValue.serverTimestamp(), // Add timestamp
+                                };
+
+                                await FirebaseFirestore.instance.collection('users').doc(user!.uid).set(userData);
+
+
+                                if (user!= null) {
+                                  // Show a success message
+                                  Fluttertoast.showToast(msg: 'Signed in with Apple ID: ${user.uid}');
+                                } else {
+                                  // Handle the case where the user is null
+                                  Fluttertoast.showToast(msg: 'Error signing in with Apple ID: User is null');
+                                }
+                              } catch (error) {
+                                // Show an error message
+                                Fluttertoast.showToast(msg: 'Error signing in with Apple ID: $error');
+                              }
+                            },
+                            child: Brand(Brands.apple_logo),
+                          ),
                         ],
                       ),
                       const SizedBox(
@@ -272,7 +445,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 ),
                               );
                             },
-                            child: Text(
+                            child: const Text(
                               'Sign in',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,

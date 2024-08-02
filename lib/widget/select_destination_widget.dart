@@ -5,7 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../model/booking_steps.dart';
 
 class SelectDestinationWidget extends StatelessWidget {
-  const SelectDestinationWidget({super.key, required this.step});
+  const SelectDestinationWidget({super.key, required this.step, required Null Function(dynamic destination) onDestinationSelected});
 
   final BookingSteps step;
 

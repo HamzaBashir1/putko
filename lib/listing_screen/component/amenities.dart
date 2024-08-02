@@ -1,16 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:putko/listing_screen/component/photos.dart';
 
 class Amenities extends StatefulWidget {
-  const Amenities({super.key});
+  final String postingId;
+  const Amenities({super.key, required this.postingId});
 
   @override
   State<Amenities> createState() => _AmenitiesState();
 }
 
 class _AmenitiesState extends State<Amenities> {
-
   bool _isSelectedWifi = false;
   bool _isSelectedTv = false;
   bool _isSelectedKitchen = false;
@@ -19,6 +20,10 @@ class _AmenitiesState extends State<Amenities> {
   bool _isSelectedPaidParking = false;
   bool _isSelectedAirConditioner = false;
   bool _isSelectedDedicatedWorkspace = false;
+  bool _isSelectedPet = false;
+  bool _isSelectedDryer = false;
+  bool _isSelectedSmokeAllow = false;
+  bool _isSelectedPrivateEntrance =false;
 
   bool _isSelectedPool = false;
   bool _isSelectedHotTub = false;
@@ -33,11 +38,55 @@ class _AmenitiesState extends State<Amenities> {
   bool _isSelectedBeachAccess = false;
   bool _isSelectedOutdoorShower = false;
 
-
   bool _isSelectedSmokeAlarm = false;
   bool _isSelectedFirstAidKit = false;
   bool _isSelectedFireExtinguisher = false;
   bool _isSelectedCarbonManoxideAlarm = false;
+
+  Future<void> _addAmenitiesToFirestore() async {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final postingRef = _firestore.collection('postings').doc(widget.postingId);
+
+    // Add the amenities to Firestore
+    await postingRef.set({
+      'amenities': {
+        'guestFavorites': {
+          'wifi': _isSelectedWifi,
+          'tv': _isSelectedTv,
+          'kitchen': _isSelectedKitchen,
+          'washer': _isSelectedWasher,
+          'freeParking': _isSelectedFreeParking,
+          'paidParking': _isSelectedPaidParking,
+          'airConditioner': _isSelectedAirConditioner,
+          'dedicatedWorkspace': _isSelectedDedicatedWorkspace,
+          'pet': _isSelectedPet,
+          'dryer': _isSelectedDryer,
+          'smokeallow': _isSelectedSmokeAllow,
+          'privateentrance': _isSelectedPrivateEntrance,
+        },
+        'standoutAmenities': {
+          'pool': _isSelectedPool,
+          'hotTub': _isSelectedHotTub,
+          'patio': _isSelectedPatio,
+          'bbqGrill': _isSelectedBBQgrill,
+          'outdoorDiningArea': _isSelectedOutdoorDiningArea,
+          'firepit': _isSelectedFirepit,
+          'indoorFireplace': _isSelectedIndoorFireplace,
+          'piano': _isSelectedPiano,
+          'exerciseEquipment': _isSelectedExerciseEquipment,
+          'lakeAccess': _isSelectedLakeAccess,
+          'beachAccess': _isSelectedBeachAccess,
+          'outdoorShower': _isSelectedOutdoorShower,
+        },
+        'safetyItems': {
+          'SmokeAlarm': _isSelectedSmokeAlarm,
+          'firstAidKit': _isSelectedFirstAidKit,
+          'fireExtinguisher': _isSelectedFireExtinguisher,
+          'carbonMonoxideAlarm': _isSelectedCarbonManoxideAlarm,
+        },
+      },
+    }, SetOptions(merge: true));
+  }
 
 
   @override
@@ -73,9 +122,10 @@ class _AmenitiesState extends State<Amenities> {
                   ),
                   onPressed: ()
                   {
+                    _addAmenitiesToFirestore();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => Photos()),
+                      MaterialPageRoute(builder: (context) => Photos(postingId: widget.postingId)),
                     );
                   },
                   // onPressed: _selectedPlaceType!= null
@@ -221,6 +271,106 @@ class _AmenitiesState extends State<Amenities> {
                               Icon(Icons.wash),
                               SizedBox(height: 16),
                               Text('Washer'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isSelectedSmokeAllow =!_isSelectedSmokeAllow;
+                          });
+                        },
+                        child: Card(
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: _isSelectedSmokeAllow? Color(0xFF4FBE9F) : Colors.grey,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.smoke_free_outlined),
+                              SizedBox(height: 16),
+                              Text('Smoke'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isSelectedPet =!_isSelectedPet;
+                          });
+                        },
+                        child: Card(
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: _isSelectedPet? Color(0xFF4FBE9F) : Colors.grey,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.pets),
+                              SizedBox(height: 16),
+                              Text('Pet'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isSelectedPrivateEntrance =!_isSelectedPrivateEntrance;
+                          });
+                        },
+                        child: Card(
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: _isSelectedPrivateEntrance? Color(0xFF4FBE9F) : Colors.grey,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.door_back_door_outlined),
+                              SizedBox(height: 16),
+                              Text('Private Entrance'),
+                            ],
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isSelectedDryer =!_isSelectedDryer;
+                          });
+                        },
+                        child: Card(
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: _isSelectedDryer? Color(0xFF4FBE9F) : Colors.grey,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.wash),
+                              SizedBox(height: 16),
+                              Text('Dryer'),
                             ],
                           ),
                         ),

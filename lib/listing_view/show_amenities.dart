@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 
 
 class ShowAmenities extends StatefulWidget {
-  const ShowAmenities({super.key});
+  final DocumentSnapshot<Map<String, dynamic>> documentSnapshot;
+  const ShowAmenities({super.key, required this.documentSnapshot});
 
   @override
   State<ShowAmenities> createState() => _ShowAmenitiesState();
@@ -17,13 +19,13 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
       appBar: AppBar(
         backgroundColor: Colors.white,
       ),
-      body: const SingleChildScrollView(
+      body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.only(left: 20,right: 20),
           child: Column(
             children: [
 
-              Row(
+              const Row(
                 children: [
 
                   Text("What this place offers", style: TextStyle(fontWeight: FontWeight.bold,fontSize: 28),),
@@ -31,63 +33,69 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ],
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
 
-              Padding(
-                padding: EdgeInsets.only(bottom: 25),
-                child: Row(
-                  children: [
-
-                    Text("Scenic views",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
-                  ],
-                ),
-              ),
-
-
-              Row(
-                children: [
-                  Column(
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 25),
+                  child: Row(
                     children: [
-                      Icon(Icons.pool)
+
+                      Text("Scenic views",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
                     ],
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Column(
-                      children: [
-                        Text("Lake View",style: TextStyle(fontSize: 18),)
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 10,
-              ),
-
-              Divider(
-                height: 20,
-                thickness: 1,
-                color: Colors.grey,
-              ),
-
-              SizedBox(
-                height: 40,
-              ),
-
-              Padding(
-                padding: EdgeInsets.only(bottom: 25),
-                child: Row(
-                  children: [
-
-                    Text("Bathroom",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
-                  ],
                 ),
-              ),
 
-              Row(
+                    widget.documentSnapshot['amenities'] != null &&
+                        widget.documentSnapshot['amenities'].containsKey('standoutAmenities') &&
+                        widget.documentSnapshot['amenities']['standoutAmenities'].containsKey('lakeAccess') &&
+                        widget.documentSnapshot['amenities']['standoutAmenities']['lakeAccess']
+                        ?
+                   const Row(
+                      children: [
+                        Column(
+                          children: [
+                            Icon(Icons.pool)
+                          ],
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(left: 10),
+                          child: Column(
+                            children: [
+                              Text("Lake View",style: TextStyle(fontSize: 18),)
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                      : Container(),
+                    const SizedBox(
+                      height: 10,
+                    ),
+
+                  const Divider(
+                    height: 20,
+                    thickness: 1,
+                    color: Colors.grey,
+                  ),
+
+                  const SizedBox(
+                    height: 40,
+                  ),
+
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 25),
+                  child: Row(
+                    children: [
+
+                      Text("Bathroom",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
+                    ],
+                  ),
+                ),
+
+
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -105,6 +113,34 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ],
               ),
 
+              // SizedBox(
+              //   height: 10,
+              // ),
+              //
+              // Divider(
+              //   height: 20,
+              //   thickness: 1,
+              //   color: Colors.grey,
+              // ),
+
+              // Row(
+              //   children: [
+              //     Column(
+              //       children: [
+              //         Icon(Icons.dry)
+              //       ],
+              //     ),
+              //     Padding(
+              //       padding: EdgeInsets.only(left: 10),
+              //       child: Column(
+              //         children: [
+              //           Text("Hair dryer",style: TextStyle(fontSize: 18),)
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // ),
+
               SizedBox(
                 height: 10,
               ),
@@ -115,35 +151,12 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 color: Colors.grey,
               ),
 
-              Row(
-                children: [
-                  Column(
-                    children: [
-                      Icon(Icons.dry)
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Column(
-                      children: [
-                        Text("Hair dryer",style: TextStyle(fontSize: 18),)
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(
-                height: 10,
-              ),
-
-              Divider(
-                height: 20,
-                thickness: 1,
-                color: Colors.grey,
-              ),
-
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('standoutAmenities') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities'].containsKey('hotTub') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities']['hotTub']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -159,7 +172,8 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
               SizedBox(
                 height: 10,
@@ -266,23 +280,23 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 color: Colors.grey,
               ),
 
-              Row(
-                children: [
-                  Column(
-                    children: [
-                      Icon(Icons.roller_shades)
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Column(
-                      children: [
-                        Text("Room-darkening shades",style: TextStyle(fontSize: 18),)
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Column(
+              //       children: [
+              //         Icon(Icons.roller_shades)
+              //       ],
+              //     ),
+              //     Padding(
+              //       padding: EdgeInsets.only(left: 10),
+              //       child: Column(
+              //         children: [
+              //           Text("Room-darkening shades",style: TextStyle(fontSize: 18),)
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // ),
 
               SizedBox(
                 height: 10,
@@ -294,8 +308,12 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 color: Colors.grey,
               ),
 
-
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('washer') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['washer']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -311,35 +329,36 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
-                height: 10,
-              ),
+              // SizedBox(
+              //   height: 10,
+              // ),
+              //
+              // Divider(
+              //   height: 20,
+              //   thickness: 1,
+              //   color: Colors.grey,
+              // ),
 
-              Divider(
-                height: 20,
-                thickness: 1,
-                color: Colors.grey,
-              ),
-
-              Row(
-                children: [
-                  Column(
-                    children: [
-                      Icon(Icons.bed)
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Column(
-                      children: [
-                        Text("Mosquito net",style: TextStyle(fontSize: 18),)
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Column(
+              //       children: [
+              //         Icon(Icons.bed)
+              //       ],
+              //     ),
+              //     Padding(
+              //       padding: EdgeInsets.only(left: 10),
+              //       child: Column(
+              //         children: [
+              //           Text("Mosquito net",style: TextStyle(fontSize: 18),)
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // ),
 
               SizedBox(
                 height: 10,
@@ -394,8 +413,12 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ),
               ),
 
-
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('tv') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['tv']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -411,7 +434,8 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
               SizedBox(
                 height: 10,
@@ -423,33 +447,39 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 color: Colors.grey,
               ),
 
-              Row(
-                children: [
-                  Column(
-                    children: [
-                      Icon(Icons.bluetooth)
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Column(
-                      children: [
-                        Text("Bluetooth sound system",style: TextStyle(fontSize: 18),)
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              // widget.documentSnapshot['amenities'] != null &&
+              //     widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+              //     widget.documentSnapshot['amenities']['guestFavorites'].containsKey('tv') &&
+              //     widget.documentSnapshot['amenities']['guestFavorites']['tv']
+              //     ?
+              // const Row(
+              //   children: [
+              //     Column(
+              //       children: [
+              //         Icon(Icons.bluetooth)
+              //       ],
+              //     ),
+              //     Padding(
+              //       padding: EdgeInsets.only(left: 10),
+              //       child: Column(
+              //         children: [
+              //           Text("Bluetooth sound system",style: TextStyle(fontSize: 18),)
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // )
+              //   : Container(),
 
-              SizedBox(
-                height: 10,
-              ),
-
-              Divider(
-                height: 20,
-                thickness: 1,
-                color: Colors.grey,
-              ),
+              // SizedBox(
+              //   height: 10,
+              // ),
+              //
+              // Divider(
+              //   height: 20,
+              //   thickness: 1,
+              //   color: Colors.grey,
+              // ),
 
               SizedBox(
                 height: 40,
@@ -465,7 +495,12 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ),
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('airConditioner') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['airConditioner']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -481,7 +516,8 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
               SizedBox(
                 height: 10,
@@ -494,7 +530,12 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
               ),
 
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('standoutAmenities') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities'].containsKey('indoorFireplace') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities']['indoorFireplace']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -510,7 +551,8 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
               SizedBox(
                 height: 10,
@@ -521,6 +563,7 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 thickness: 1,
                 color: Colors.grey,
               ),
+
 
               Row(
                 children: [
@@ -608,7 +651,11 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ),
               ),
 
-              Row(
+
+              widget.documentSnapshot['securityCameras'] != null &&
+                  widget.documentSnapshot['securityCameras']
+                  ?
+             const Row(
                 children: [
                   Column(
                     children: [
@@ -624,7 +671,8 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
               SizedBox(
                 height: 10,
@@ -636,7 +684,12 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 color: Colors.grey,
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('safetyItems') &&
+                  widget.documentSnapshot['amenities']['safetyItems'].containsKey('SmokeAlarm') &&
+                  widget.documentSnapshot['amenities']['safetyItems']['SmokeAlarm']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -652,20 +705,25 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('safetyItems') &&
+                  widget.documentSnapshot['amenities']['safetyItems'].containsKey('carbonMonoxideAlarm') &&
+                  widget.documentSnapshot['amenities']['safetyItems']['carbonMonoxideAlarm']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -681,19 +739,25 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('safetyItems') &&
+                  widget.documentSnapshot['amenities']['safetyItems'].containsKey('fireExtinguisher') &&
+                  widget.documentSnapshot['amenities']['safetyItems']['fireExtinguisher']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -709,23 +773,24 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 40,
               ),
 
-              Padding(
+              const Padding(
                 padding: EdgeInsets.only(bottom: 25),
                 child: Row(
                   children: [
@@ -735,7 +800,12 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ),
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('wifi') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['wifi']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -751,19 +821,25 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('dedicatedWorkspace') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['dedicatedWorkspace']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -779,23 +855,24 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 40,
               ),
 
-              Padding(
+              const Padding(
                 padding: EdgeInsets.only(bottom: 25),
                 child: Row(
                   children: [
@@ -981,33 +1058,33 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 color: Colors.grey,
               ),
 
-              Row(
-                children: [
-                  Column(
-                    children: [
-                      Icon(Icons.store_mall_directory_outlined)
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Column(
-                      children: [
-                        Text("Mini fridge",style: TextStyle(fontSize: 18),)
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(
-                height: 10,
-              ),
-
-              Divider(
-                height: 20,
-                thickness: 1,
-                color: Colors.grey,
-              ),
+              // Row(
+              //   children: [
+              //     Column(
+              //       children: [
+              //         Icon(Icons.store_mall_directory_outlined)
+              //       ],
+              //     ),
+              //     Padding(
+              //       padding: EdgeInsets.only(left: 10),
+              //       child: Column(
+              //         children: [
+              //           Text("Mini fridge",style: TextStyle(fontSize: 18),)
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // ),
+              //
+              // SizedBox(
+              //   height: 10,
+              // ),
+              //
+              // Divider(
+              //   height: 20,
+              //   thickness: 1,
+              //   color: Colors.grey,
+              // ),
 
               Row(
                 children: [
@@ -1107,7 +1184,12 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ),
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('privateentrance') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['privateentrance']
+                  ?
+              const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
@@ -1135,7 +1217,8 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+              : Container(),
 
               SizedBox(
                 height: 10,
@@ -1161,7 +1244,12 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ),
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('standoutAmenities') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities'].containsKey('patio') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities']['patio']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1177,59 +1265,65 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+              : Container(),
 
-              SizedBox(
+              // const SizedBox(
+              //   height: 10,
+              // ),
+              //
+              // const Divider(
+              //   height: 20,
+              //   thickness: 1,
+              //   color: Colors.grey,
+              // ),
+              //
+              // Row(
+              //   crossAxisAlignment: CrossAxisAlignment.start,
+              //   children: [
+              //     SizedBox(
+              //       width: 40, // adjust the width to fit your icon
+              //       child: Icon(
+              //           Icons.door_front_door_outlined
+              //       ),
+              //     ),
+              //     // SizedBox(width: 2), // add some space between the icon and the text
+              //     Expanded(
+              //       child: Column(
+              //         crossAxisAlignment: CrossAxisAlignment.start,
+              //         children: [
+              //           Text(
+              //             'Private backyard - Not fully fenced',
+              //             style: TextStyle(
+              //               fontSize: 16,
+              //               fontWeight: FontWeight.bold,
+              //             ),
+              //           ),
+              //           Text(
+              //             'An open space on the property usually covered in grass',
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // ),
+
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 40, // adjust the width to fit your icon
-                    child: Icon(
-                        Icons.door_front_door_outlined
-                    ),
-                  ),
-                  // SizedBox(width: 2), // add some space between the icon and the text
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Private backyard - Not fully fenced',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'An open space on the property usually covered in grass',
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(
-                height: 10,
-              ),
-
-              Divider(
-                height: 20,
-                thickness: 1,
-                color: Colors.grey,
-              ),
-
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('standoutAmenities') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities'].containsKey('outdoorDiningArea') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities']['outdoorDiningArea']
+                  ?
+             const Row(
                 children: [
                   Column(
                     children: [
@@ -1245,19 +1339,25 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('standoutAmenities') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities'].containsKey('outdoorDiningArea') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities']['outdoorDiningArea']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1273,19 +1373,25 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('standoutAmenities') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities'].containsKey('bbqGrill') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities']['bbqGrill']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1301,19 +1407,25 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('standoutAmenities') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities'].containsKey('outdoorShower') &&
+                  widget.documentSnapshot['amenities']['standoutAmenities']['outdoorShower']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1329,23 +1441,24 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 40,
               ),
 
-              Padding(
+              const Padding(
                 padding: EdgeInsets.only(bottom: 25),
                 child: Row(
                   children: [
@@ -1355,7 +1468,12 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ),
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('paidParking') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['paidParking']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1366,52 +1484,53 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     padding: EdgeInsets.only(left: 10),
                     child: Column(
                       children: [
-                        Text("Free driveaway parking on premises",style: TextStyle(fontSize: 17),)
+                        Text("Paid driveaway parking on premises",style: TextStyle(fontSize: 17),)
                       ],
                     ),
                   ),
                 ],
-              ),
+              )
+              : Container(),
 
-              SizedBox(
+              // const SizedBox(
+              //   height: 10,
+              // ),
+              //
+              // const Divider(
+              //   height: 20,
+              //   thickness: 1,
+              //   color: Colors.grey,
+              // ),
+              //
+              // const Row(
+              //   children: [
+              //     Column(
+              //       children: [
+              //         Icon(Icons.hot_tub)
+              //       ],
+              //     ),
+              //     Padding(
+              //       padding: EdgeInsets.only(left: 10),
+              //       child: Column(
+              //         children: [
+              //           Text("Private hot tub - available all year, \nopen 24 hours",style: TextStyle(fontSize: 18),)
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // ),
+
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
-                children: [
-                  Column(
-                    children: [
-                      Icon(Icons.hot_tub)
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Column(
-                      children: [
-                        Text("Private hot tub - available all year, \nopen 24 hours",style: TextStyle(fontSize: 18),)
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(
-                height: 10,
-              ),
-
-              Divider(
-                height: 20,
-                thickness: 1,
-                color: Colors.grey,
-              ),
-
-              Row(
+             const Row(
                 children: [
                   Column(
                     children: [
@@ -1429,21 +1548,21 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ],
               ),
 
-              SizedBox(
+             const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 40,
               ),
 
-              Padding(
+              const Padding(
                 padding: EdgeInsets.only(bottom: 25),
                 child: Row(
                   children: [
@@ -1453,17 +1572,22 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ),
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('pet') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['pet']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1479,22 +1603,28 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+              : Container(),
 
 
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('smokeallow') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['smokeallow']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1510,47 +1640,50 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+              : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
-                children: [
-                  Column(
-                    children: [
-                      Icon(Icons.calendar_month)
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Column(
-                      children: [
-                        Text("Long term stay allowed",style: TextStyle(fontSize: 18),)
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              // const Row(
+              //   children: [
+              //     Column(
+              //       children: [
+              //         Icon(Icons.calendar_month)
+              //       ],
+              //     ),
+              //     Padding(
+              //       padding: EdgeInsets.only(left: 10),
+              //       child: Column(
+              //         children: [
+              //           Text("Long term stay allowed",style: TextStyle(fontSize: 18),)
+              //         ],
+              //       ),
+              //     ),
+              //   ],
+              // ),
 
-              SizedBox(
-                height: 10,
-              ),
+              // SizedBox(
+              //   height: 10,
+              // ),
+              //
+              // Divider(
+              //   height: 20,
+              //   thickness: 1,
+              //   color: Colors.grey,
+              // ),
 
-              Divider(
-                height: 20,
-                thickness: 1,
-                color: Colors.grey,
-              ),
-
-              Row(
+              widget.documentSnapshot['reservationType'] == "Use Instant Book"
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1566,19 +1699,20 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+                : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1596,21 +1730,22 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ],
               ),
 
-              SizedBox(
+
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 40,
               ),
 
-              Padding(
+              const Padding(
                 padding: EdgeInsets.only(bottom: 25),
                 child: Row(
                   children: [
@@ -1620,7 +1755,13 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                 ),
               ),
 
-              Row(
+
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('washer') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['washer']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1636,20 +1777,26 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+              : Container(),
 
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              Row(
+              widget.documentSnapshot['amenities'] != null &&
+                  widget.documentSnapshot['amenities'].containsKey('guestFavorites') &&
+                  widget.documentSnapshot['amenities']['guestFavorites'].containsKey('dryer') &&
+                  widget.documentSnapshot['amenities']['guestFavorites']['dryer']
+                  ?
+              const Row(
                 children: [
                   Column(
                     children: [
@@ -1665,19 +1812,20 @@ class _ShowAmenitiesState extends State<ShowAmenities> {
                     ),
                   ),
                 ],
-              ),
+              )
+              : Container(),
 
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
 
-              Divider(
+              const Divider(
                 height: 20,
                 thickness: 1,
                 color: Colors.grey,
               ),
 
-              SizedBox(
+              const SizedBox(
                 height: 40,
               ),
 

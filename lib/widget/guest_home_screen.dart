@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:putko/messages/inbox_screen.dart';
 import 'package:putko/messages/message_home.dart';
 import 'package:putko/profile/profile_home.dart';
 import 'package:putko/screens/home_screen.dart';
 import 'package:putko/trips/trips_home.dart';
-import 'package:putko/wishlists/wishlist_screen.dart';
 
 import '../shared/theme/colors.dart';
 
@@ -139,8 +138,6 @@ import '../shared/theme/colors.dart';
 //     );
 //   }
 // }
-
-
 
 class GuestHomeScreen extends StatefulWidget {
   const GuestHomeScreen({super.key});

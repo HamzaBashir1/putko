@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:putko/listing_screen/component/place_type.dart';
 
 class PropertyTypes extends StatefulWidget {
-  const PropertyTypes({super.key});
+  final String postingId;
+  const PropertyTypes({super.key, required this.postingId});
 
   @override
   State<PropertyTypes> createState() => _PropertyTypesState();
@@ -10,6 +12,17 @@ class PropertyTypes extends StatefulWidget {
 
 class _PropertyTypesState extends State<PropertyTypes> {
   String? _selectedPropertyType;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> _addPropertyTypeToFirestore() async {
+    if (_selectedPropertyType!= null) {
+      await _firestore.collection('postings').doc(widget.postingId).update({
+        'propertyType': _selectedPropertyType,
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,13 +56,14 @@ class _PropertyTypesState extends State<PropertyTypes> {
                 ),
                 onPressed: _selectedPropertyType!= null
                     ? () {
+                  _addPropertyTypeToFirestore();
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => PlaceType()),
+                    MaterialPageRoute(builder: (context) => PlaceType(postingId: widget.postingId)),
                   );
                 }
                     : null,
-                child: Text('Next', style: TextStyle(color: Colors.white),),
+                child: Text('Next', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -60,11 +74,7 @@ class _PropertyTypesState extends State<PropertyTypes> {
           margin: EdgeInsets.only(left: 20,right: 20, top: 10),
           child: Column(
             children: [
-        
-        
               Text("Which of these best\ndescribes your place?", style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold),),
-        
-        
               GridView.count(
                 shrinkWrap: true, // Add this
                 crossAxisCount: 2,

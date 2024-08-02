@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:putko/listing_screen/component/basic_your_place.dart';
 import 'package:putko/listing_screen/component/place_location.dart';
 
 class PlaceType extends StatefulWidget {
-  const PlaceType({super.key});
+  final String postingId;
+  const PlaceType({super.key, required this.postingId});
 
   @override
   State<PlaceType> createState() => _PlaceTypeState();
@@ -11,6 +13,9 @@ class PlaceType extends StatefulWidget {
 
 class _PlaceTypeState extends State<PlaceType> {
   String? _selectedPlaceType;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,10 +48,13 @@ class _PlaceTypeState extends State<PlaceType> {
                   backgroundColor: const Color(0xFF4FBE9F), // Add background color
                 ),
                 onPressed: _selectedPlaceType!= null
-                    ? () {
+                    ? () async {
+                  await _firestore.collection('postings').doc(widget.postingId).update({
+                    'placeType': _selectedPlaceType,
+                  });
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => PlaceLocation()),
+                    MaterialPageRoute(builder: (context) => PlaceLocation(postingId: widget.postingId)),
                   );
                 }
                     : null,

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -10,60 +12,108 @@ class PersonalInformation extends StatefulWidget {
 
 class _PersonalInformationState extends State<PersonalInformation> {
 
-  //preferred first name shred preference
+  
+
+ //preferred first name shred preference
   final _preferredFirstNameController = TextEditingController();
   String _preferredFirstName = '';
 
   Future<void> _savePreferredFirstName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'preferred_first_name': _preferredFirstName}, SetOptions(merge: true));
+    }
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('preferred_first_name', _preferredFirstName);
   }
 
   Future<void> _loadPreferredFirstName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _preferredFirstName = docSnap['preferred_first_name'] ?? '';
+        });
+      }
+    }
     final prefs = await SharedPreferences.getInstance();
     final name = prefs.getString('preferred_first_name');
     setState(() {
-      _preferredFirstName = name?? ''; // Set the default value to an empty string if no name is found
+      _preferredFirstName = name ?? ''; // Set the default value to an empty string if no name is found
     });
   }
 
   //legal name share preference
-  String _legalFirstName = 'Hamza';
-  String _legalLastName = 'Bashir';
+  String _legalFirstName = '';
+  String _legalLastName = '';
   final _legalFirstNameController = TextEditingController();
   final _legalLastNameController = TextEditingController();
 
   Future<void> _saveLegalName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'legal_first_name': _legalFirstName, 'legal_last_name': _legalLastName}, SetOptions(merge: true));
+    }
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('legal_first_name', _legalFirstName);
     prefs.setString('legal_last_name', _legalLastName);
   }
 
   Future<void> _loadLegalName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _legalFirstName = docSnap['legal_first_name'] ?? '';
+          _legalLastName = docSnap['legal_last_name'] ?? '';
+        });
+      }
+    }
     final prefs = await SharedPreferences.getInstance();
     final firstName = prefs.getString('legal_first_name');
     final lastName = prefs.getString('legal_last_name');
     setState(() {
-      _legalFirstName = firstName?? ''; // Set the default value to an empty string if no name is found
-      _legalLastName = lastName?? ''; // Set the default value to an empty string if no name is found
+      _legalFirstName = firstName ?? ''; // Set the default value to an empty string if no name is found
+      _legalLastName = lastName ?? ''; // Set the default value to an empty string if no name is found
     });
   }
 
   //number shared preference
   String _phoneNumber = '';
 
-
   _loadPhoneNumber() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _phoneNumber = docSnap['phone_number'] ?? '';
+        });
+      }
+    }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _phoneNumber = prefs.getString('phoneNumber')?? '';
+      _phoneNumber = prefs.getString('phoneNumber') ?? '';
     });
   }
 
   _savePhoneNumber(String phoneNumber) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({'phone_number': phoneNumber}, SetOptions(merge: true));
+    }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('phoneNumber', phoneNumber);
   }
+
 
   //address
   String _street = '';
@@ -73,17 +123,41 @@ class _PersonalInformationState extends State<PersonalInformation> {
   String _address = '';
 
   _loadAddress() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _street = docSnap['street']?? '';
+          _city = docSnap['city']?? '';
+          _state = docSnap['state']?? '';
+          _zipCode = docSnap['zip_code']?? '';
+          _address = '$_street, $_city, $_state, $_zipCode';
+        });
+      }
+    }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _street = prefs.getString('street') ?? '';
-      _city = prefs.getString('city') ?? '';
-      _state = prefs.getString('state') ?? '';
-      _zipCode = prefs.getString('zipCode') ?? '';
+      _street = prefs.getString('street')?? '';
+      _city = prefs.getString('city')?? '';
+      _state = prefs.getString('state')?? '';
+      _zipCode = prefs.getString('zipCode')?? '';
       _address = '$_street, $_city, $_state, $_zipCode';
     });
   }
 
   _saveAddress() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({
+       'street': _street,
+        'city': _city,
+      'state': _state,
+        'zip_code': _zipCode,
+      }, SetOptions(merge: true));
+    }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('street', _street);
     prefs.setString('city', _city);
@@ -99,6 +173,16 @@ class _PersonalInformationState extends State<PersonalInformation> {
   final _phoneController = TextEditingController();
 
   _loadEmergencyContact() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _emergencyContact = docSnap['emergency_contact']?? 'Not Provided';
+        });
+      }
+    }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _emergencyContact = prefs.getString('emergencyContact')?? 'Not Provided';
@@ -106,6 +190,13 @@ class _PersonalInformationState extends State<PersonalInformation> {
   }
 
   _saveEmergencyContact() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      await docRef.set({
+        'emergency_contact': 'Name: ${_nameController.text}, Relationship: ${_relationshipController.text}, Email: ${_emailController.text}, Phone: ${_phoneController.text}',
+      }, SetOptions(merge: true));
+    }
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('emergencyContact', 'Name: ${_nameController.text}, Relationship: ${_relationshipController.text}, Email: ${_emailController.text}, Phone: ${_phoneController.text}');
   }
@@ -134,102 +225,102 @@ class _PersonalInformationState extends State<PersonalInformation> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-          
+
               const Row(
                 children: [
                   Text("Personal info",style: TextStyle(fontSize: 28,fontWeight: FontWeight.bold),),
                 ],
               ),
-          
+
               const SizedBox(
                 height: 40,
               ),
               Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
 
-                Column(
-                  children: [
-                    Text("Legal Name", style: TextStyle(fontSize: 18),),
-                    Text("$_legalFirstName $_legalLastName")
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () {
-                    _legalFirstNameController.text = _legalFirstName;
-                    _legalLastNameController.text = _legalLastName;
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('Legal name'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                  'Your calendar may be blocked for up to an hour while we verify your new legal name.'),
-                              const SizedBox(height: 16),
-                              TextFormField(
-                                controller: _legalFirstNameController,
-                                decoration: const InputDecoration(
-                                  labelText: 'First name on ID',
+                  Column(
+                    children: [
+                      Text("Legal Name", style: TextStyle(fontSize: 18),),
+                      Text("$_legalFirstName $_legalLastName")
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      _legalFirstNameController.text = _legalFirstName;
+                      _legalLastNameController.text = _legalLastName;
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text('Legal name'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                    'Your calendar may be blocked for up to an hour while we verify your new legal name.'),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _legalFirstNameController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'First name on ID',
+                                  ),
                                 ),
+                                const SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _legalLastNameController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Last name on ID',
+                                  ),
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('Cancel'),
                               ),
-                              const SizedBox(height: 16),
-                              TextFormField(
-                                controller: _legalLastNameController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Last name on ID',
-                                ),
+                              TextButton(
+                                onPressed: () async {
+                                  if (_legalFirstNameController.text.isNotEmpty && _legalLastNameController.text.isNotEmpty) {
+                                    // Handle save and continue action
+                                    setState(() {
+                                      _legalFirstName = _legalFirstNameController.text;
+                                      _legalLastName = _legalLastNameController.text;
+                                    });
+                                    await _saveLegalName(); // Save the name locally
+                                    Navigator.of(context).pop();
+                                  } else {
+                                    // Show a message to the user to enter a name
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Please enter a legal name'),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: const Text('Save and continue'),
                               ),
                             ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                if (_legalFirstNameController.text.isNotEmpty && _legalLastNameController.text.isNotEmpty) {
-                                  // Handle save and continue action
-                                  setState(() {
-                                    _legalFirstName = _legalFirstNameController.text;
-                                    _legalLastName = _legalLastNameController.text;
-                                  });
-                                  await _saveLegalName(); // Save the name locally
-                                  Navigator.of(context).pop();
-                                } else {
-                                  // Show a message to the user to enter a name
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Please enter a legal name'),
-                                    ),
-                                  );
-                                }
-                              },
-                              child: const Text('Save and continue'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-              child: const Column(
-                children: [
-                  Text("Edit",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18,decoration: TextDecoration.underline),),
+                          );
+                        },
+                      );
+                    },
+                    child: const Column(
+                      children: [
+                        Text("Edit",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18,decoration: TextDecoration.underline),),
+                      ],
+                    ),
+                  )
                 ],
               ),
-            )
-          ],
-        ),
               const SizedBox(
                 height: 20,
               ),
-          
+
               const Divider(
                 thickness: 1,
                 height: 20,
@@ -325,7 +416,7 @@ class _PersonalInformationState extends State<PersonalInformation> {
               const SizedBox(
                 height: 20,
               ),
-          
+
               const Divider(
                 thickness: 1,
                 height: 20,
@@ -423,7 +514,7 @@ class _PersonalInformationState extends State<PersonalInformation> {
               const SizedBox(
                 height: 20,
               ),
-          
+
               const Divider(
                 thickness: 1,
                 height: 20,
@@ -445,11 +536,13 @@ class _PersonalInformationState extends State<PersonalInformation> {
                           ),
                         ),
                         Text(
-                          "Hamzabashir02001@gmail.com",
+                          FirebaseAuth.instance.currentUser != null
+                              ? ' ${FirebaseAuth.instance.currentUser!.email ?? ''}'
+                              : 'No user logged in',
                           style: TextStyle(
                             fontSize: MediaQuery.of(context).size.width * 0.04,
                           ),
-                        ),
+                        )
                       ],
                     ),
                   ),
@@ -459,7 +552,7 @@ class _PersonalInformationState extends State<PersonalInformation> {
               const SizedBox(
                 height: 20,
               ),
-          
+
               const Divider(
                 thickness: 1,
                 height: 20,
@@ -567,7 +660,7 @@ class _PersonalInformationState extends State<PersonalInformation> {
               const SizedBox(
                 height: 20,
               ),
-          
+
               const Divider(
                 thickness: 1,
                 height: 20,
@@ -662,9 +755,9 @@ class _PersonalInformationState extends State<PersonalInformation> {
               const SizedBox(
                 height: 40,
               ),
-          
 
-          
+
+
             ],
           ),
         ),
@@ -672,5 +765,4 @@ class _PersonalInformationState extends State<PersonalInformation> {
     );
   }
 }
-
 

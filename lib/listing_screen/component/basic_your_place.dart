@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:putko/listing_screen/component/amenities.dart';
 
 class BasicYourPlace extends StatefulWidget {
-  const BasicYourPlace({super.key});
+  final String postingId;
+  const BasicYourPlace({super.key, required this.postingId});
 
   @override
   State<BasicYourPlace> createState() => _BasicYourPlaceState();
@@ -72,6 +74,19 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
     });
   }
 
+  Future<void> _addBasicInfoToFirestore() async {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final postingRef = _firestore.collection('postings').doc(widget.postingId);
+
+    // Add the basic info to Firestore
+    await postingRef.set({
+      'guests': _guests,
+      'bedrooms': _bedrooms,
+      'beds': _beds,
+      'bathrooms': _bathrooms,
+    }, SetOptions(merge: true));
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +98,7 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
         child: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             border: Border(
               top: BorderSide(width: 1, color: Colors.grey),
             ),
@@ -95,20 +110,21 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
                 onPressed: () {
                   Navigator.pop(context); // Go back to previous screen
                 },
-                child: Text('Back', style: TextStyle(color: Colors.black,decoration: TextDecoration.underline),),
+                child: const Text('Back', style: TextStyle(color: Colors.black,decoration: TextDecoration.underline),),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4FBE9F), // Add background color
                 ),
-                onPressed: ()
+                onPressed: () async
                 {
+                  await _addBasicInfoToFirestore();
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Amenities()),
+                    MaterialPageRoute(builder: (context) => Amenities(postingId: widget.postingId)),
                   );
                 },
                 // onPressed: _selectedPlaceType!= null
@@ -119,22 +135,22 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
                 //   );
                 // }
                 //     : null,
-                child: Text('Next', style: TextStyle(color: Colors.white),),
+                child: const Text('Next', style: TextStyle(color: Colors.white),),
               ),
             ],
           ),
         ),
       ),
       body: Container(
-        margin: EdgeInsets.only(left: 20,right: 20,top: 20),
+        margin: const EdgeInsets.only(left: 20,right: 20,top: 20),
         child: Column(
           children: [
 
 
 
-            Text("Share some basics about your place", style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold),),
+            const Text("Share some basics about your place", style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold),),
 
-            Text("you'll add more details later, like bed types.",
+            const Text("you'll add more details later, like bed types.",
               style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey
@@ -146,7 +162,7 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
+                  const Column(
                     children: [
                       Text(
                         'Guests',
@@ -155,22 +171,22 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
 
                     ],
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 20,
                   ),
                   Row(
                     children: [
                       IconButton(
                         onPressed: _decrementGuests,
-                        icon: Icon(Icons.remove_circle),
+                        icon: const Icon(Icons.remove_circle),
                       ),
                       Text(
                         '$_guests',
-                        style: TextStyle(fontSize: 20),
+                        style: const TextStyle(fontSize: 20),
                       ),
                       IconButton(
                         onPressed: _incrementGuests,
-                        icon: Icon(Icons.add_circle),
+                        icon: const Icon(Icons.add_circle),
                       ),
                     ],
                   ),
@@ -179,7 +195,7 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
               ),
             ),
 
-            Divider(
+            const Divider(
               thickness: 1,
               height: 20,
               color: Colors.grey,
@@ -190,7 +206,7 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
+                  const Column(
                     children: [
                       Text(
                         'Bedrooms',
@@ -202,15 +218,15 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
                     children: [
                       IconButton(
                         onPressed: _decrementBedrooms,
-                        icon: Icon(Icons.remove_circle),
+                        icon: const Icon(Icons.remove_circle),
                       ),
                       Text(
                         '$_bedrooms',
-                        style: TextStyle(fontSize: 20),
+                        style: const TextStyle(fontSize: 20),
                       ),
                       IconButton(
                         onPressed: _incrementBedrooms,
-                        icon: Icon(Icons.add_circle),
+                        icon: const Icon(Icons.add_circle),
                       ),
                     ],
                   ),
@@ -219,7 +235,7 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
             ),
 
 
-            Divider(
+            const Divider(
               thickness: 1,
               height: 20,
               color: Colors.grey,
@@ -230,7 +246,7 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
+                  const Column(
                     children: [
                       Text(
                         'Beds',
@@ -242,15 +258,15 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
                     children: [
                       IconButton(
                         onPressed: _decrementBeds,
-                        icon: Icon(Icons.remove_circle),
+                        icon: const Icon(Icons.remove_circle),
                       ),
                       Text(
                         '$_beds',
-                        style: TextStyle(fontSize: 20),
+                        style: const TextStyle(fontSize: 20),
                       ),
                       IconButton(
                         onPressed: _incrementBeds,
-                        icon: Icon(Icons.add_circle),
+                        icon: const Icon(Icons.add_circle),
                       ),
                     ],
                   ),
@@ -259,7 +275,7 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
             ),
 
 
-            Divider(
+            const Divider(
               thickness: 1,
               height: 20,
               color: Colors.grey,
@@ -270,7 +286,7 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
+                  const Column(
                     children: [
                       Text(
                         'Bathrooms',
@@ -282,15 +298,15 @@ class _BasicYourPlaceState extends State<BasicYourPlace> {
                     children: [
                       IconButton(
                         onPressed: _decrementBathrooms,
-                        icon: Icon(Icons.remove_circle),
+                        icon: const Icon(Icons.remove_circle),
                       ),
                       Text(
                         '$_bathrooms',
-                        style: TextStyle(fontSize: 20),
+                        style: const TextStyle(fontSize: 20),
                       ),
                       IconButton(
                         onPressed: _incrementBathrooms,
-                        icon: Icon(Icons.add_circle),
+                        icon: const Icon(Icons.add_circle),
                       ),
                     ],
                   ),

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:putko/listing_screen/component/about_your_place.dart';
 import 'package:putko/widget/common_button.dart';
@@ -10,6 +12,18 @@ class GetStartedUI extends StatefulWidget {
 }
 
 class _GetStartedUIState extends State<GetStartedUI> {
+
+  Future<void> _addMyPostingIDsToFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user!= null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final postingsRef = FirebaseFirestore.instance.collection('postings');
+      final querySnapshot = await postingsRef.where('createdBy', isEqualTo: user.uid).get();
+      final postingIds = querySnapshot.docs.map((doc) => doc.id).toList();
+      await docRef.set({'myPostingIDs': FieldValue.arrayUnion(postingIds)}, SetOptions(merge: true));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -236,7 +250,8 @@ class _GetStartedUIState extends State<GetStartedUI> {
 
             CommonButton(
               buttonText: 'Get Started',
-              onTap: (){
+              onTap: () async {
+                await _addMyPostingIDsToFirestore();
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const AboutYourPlace()),

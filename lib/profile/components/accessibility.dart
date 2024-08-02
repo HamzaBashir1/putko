@@ -8,8 +8,8 @@ class Accessibility extends StatefulWidget {
 }
 
 class _AccessibilityState extends State<Accessibility> {
-  bool _zoomControlsEnabled = true;
-  bool _panControlsEnabled = true;
+  final _zoomControlsEnabledNotifier = ValueNotifier<bool>(true);
+  final _panControlsEnabledNotifier = ValueNotifier<bool>(true);
 
   @override
   Widget build(BuildContext context) {
@@ -19,27 +19,23 @@ class _AccessibilityState extends State<Accessibility> {
         backgroundColor: Colors.white,
       ),
       body: Container(
-        margin: const EdgeInsets.only(left: 20,right: 20),
+        margin: const EdgeInsets.only(left: 20, right: 20),
         child: Column(
           children: [
-
-
             Row(
               children: [
                 const Text(
                   "Accessibility",
                   style: TextStyle(
                     fontSize: 30,
-                    fontWeight: FontWeight.bold
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
-
             SizedBox(
               height: 20,
             ),
-
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -56,13 +52,16 @@ class _AccessibilityState extends State<Accessibility> {
                   style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 16),
-                SwitchListTile(
-                  title: const Text('Enabled'),
-                  value: _zoomControlsEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      _zoomControlsEnabled = value;
-                    });
+                ValueListenableBuilder(
+                  valueListenable: _zoomControlsEnabledNotifier,
+                  builder: (context, value, child) {
+                    return SwitchListTile(
+                      title: const Text('Enabled'),
+                      value: value,
+                      onChanged: (newValue) {
+                        _zoomControlsEnabledNotifier.value = newValue;
+                      },
+                    );
                   },
                 ),
                 const SizedBox(height: 32),
@@ -79,18 +78,20 @@ class _AccessibilityState extends State<Accessibility> {
                   style: TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 16),
-                SwitchListTile(
-                  title: const Text('Enabled'),
-                  value: _panControlsEnabled,
-                  onChanged: (value) {
-                    setState(() {
-                      _panControlsEnabled = value;
-                    });
+                ValueListenableBuilder(
+                  valueListenable: _panControlsEnabledNotifier,
+                  builder: (context, value, child) {
+                    return SwitchListTile(
+                      title: const Text('Enabled'),
+                      value: value,
+                      onChanged: (newValue) {
+                        _panControlsEnabledNotifier.value = newValue;
+                      },
+                    );
                   },
                 ),
               ],
             ),
-
           ],
         ),
       ),

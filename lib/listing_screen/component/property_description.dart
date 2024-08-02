@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:putko/listing_screen/component/reservation_type.dart';
 
 class PropertyDescription extends StatefulWidget {
-  const PropertyDescription({super.key});
+  final String postingId;
+  const PropertyDescription({super.key, required this.postingId});
 
   @override
   State<PropertyDescription> createState() => _PropertyDescriptionState();
@@ -10,6 +12,7 @@ class PropertyDescription extends StatefulWidget {
 
 class _PropertyDescriptionState extends State<PropertyDescription> {
   final _descriptionController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -42,12 +45,17 @@ class _PropertyDescriptionState extends State<PropertyDescription> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4FBE9F), // Add background color
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (_descriptionController.text.isNotEmpty) {
+                      // Update the Firestore document with the description
+                      await _firestore.collection('postings').doc(widget.postingId).set({
+                        'description': _descriptionController.text,
+                      }, SetOptions(merge: true));
+
                       // Navigate to next page if the description is not empty
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ReservationType()),
+                        MaterialPageRoute(builder: (context) => ReservationType(postingId: widget.postingId)),
                       );
                     } else {
                       // Show an error message or alert if the description is empty

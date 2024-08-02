@@ -7,7 +7,7 @@ import '../shared/theme/colors.dart';
 import 'app_calender.dart';
 
 class SelectDateWidget extends StatelessWidget {
-  const SelectDateWidget({super.key, required this.step});
+  const SelectDateWidget({super.key, required this.step, required Null Function(dynamic dateRange) onDateRangeSelected});
 
   final BookingSteps step;
 
@@ -83,7 +83,7 @@ class SelectDateWidget extends StatelessWidget {
                   FilledButton(
                     onPressed: () {},
                     style: FilledButton.styleFrom(
-                      backgroundColor: appRed,
+                      backgroundColor: appGreen,
                       minimumSize: const Size(120, 48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),

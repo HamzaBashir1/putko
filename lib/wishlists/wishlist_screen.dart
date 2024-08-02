@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
-import 'package:putko/widget/app_nav_bar.dart';
+import 'package:putko/widget/guest_home_screen.dart';
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
@@ -13,7 +13,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: const AppNavBar(),
+      // bottomNavigationBar: const AppNavBar(),
       appBar: AppBar(
         backgroundColor: Colors.white,
         toolbarHeight: 100,

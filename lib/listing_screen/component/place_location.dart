@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:putko/listing_screen/component/basic_your_place.dart';
+
+import 'basic_your_place.dart';
 
 class PlaceLocation extends StatefulWidget {
-  const PlaceLocation({super.key});
+  final String postingId;
+
+  const PlaceLocation({super.key, required this.postingId});
 
   @override
   State<PlaceLocation> createState() => _PlaceLocationState();
@@ -16,6 +20,13 @@ class _PlaceLocationState extends State<PlaceLocation> {
   final Set<Marker> _markers = {};
 
   final _formKey = GlobalKey<FormState>();
+
+  final flatFloorBldgController = TextEditingController();
+  final propertyNameController = TextEditingController();
+  final streetAddressController = TextEditingController();
+  final countryController = TextEditingController();
+  final townController = TextEditingController();
+  final postcodeController = TextEditingController();
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
@@ -56,9 +67,10 @@ class _PlaceLocationState extends State<PlaceLocation> {
                   if (_formKey.currentState!.validate()) {
                     // Process the form
                     // print('Form submitted successfully!');
+                    _addPlaceLocationToFirestore();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => BasicYourPlace()),
+                      MaterialPageRoute(builder: (context) => BasicYourPlace(postingId: widget.postingId)),
                     );
                   }
                 },
@@ -92,6 +104,7 @@ class _PlaceLocationState extends State<PlaceLocation> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       TextFormField(
+                        controller: flatFloorBldgController,
                         decoration: InputDecoration(
                           labelText: 'Flat, floor, bldg (if applicable)',
                           border: OutlineInputBorder(
@@ -107,6 +120,7 @@ class _PlaceLocationState extends State<PlaceLocation> {
                       ),
                       SizedBox(height: 16.0),
                       TextFormField(
+                        controller: propertyNameController,
                         decoration: InputDecoration(
                           labelText: 'Property name (if applicable)',
                           border: OutlineInputBorder(
@@ -122,6 +136,7 @@ class _PlaceLocationState extends State<PlaceLocation> {
                       ),
                       SizedBox(height: 16.0),
                       TextFormField(
+                        controller: streetAddressController,
                         decoration: InputDecoration(
                           labelText: 'Street address',
                           border: OutlineInputBorder(
@@ -137,6 +152,7 @@ class _PlaceLocationState extends State<PlaceLocation> {
                       ),
                       SizedBox(height: 16.0),
                       TextFormField(
+                        controller: countryController,
                         decoration: InputDecoration(
                           labelText: 'Country (if applicable)',
                           border: OutlineInputBorder(
@@ -152,6 +168,7 @@ class _PlaceLocationState extends State<PlaceLocation> {
                       ),
                       SizedBox(height: 16.0),
                       TextFormField(
+                        controller: townController,
                         decoration: InputDecoration(
                           labelText: 'Town',
                           border: OutlineInputBorder(
@@ -167,6 +184,7 @@ class _PlaceLocationState extends State<PlaceLocation> {
                       ),
                       SizedBox(height: 16.0),
                       TextFormField(
+                        controller: postcodeController,
                         decoration: InputDecoration(
                           labelText: 'Postcode',
                           border: OutlineInputBorder(
@@ -190,5 +208,28 @@ class _PlaceLocationState extends State<PlaceLocation> {
         ),
       ),
     );
+  }
+
+  Future<void> _addPlaceLocationToFirestore() async {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final postingRef = _firestore.collection('postings').doc(widget.postingId);
+
+    // Get the form values
+    final flatFloorBldg = flatFloorBldgController.text;
+    final propertyName = propertyNameController.text;
+    final streetAddress = streetAddressController.text;
+    final country = countryController.text;
+    final town = townController.text;
+    final postcode = postcodeController.text;
+
+    // Add the place location to Firestore
+    await postingRef.set({
+      'flatFloorBldg': flatFloorBldg,
+      'propertyName': propertyName,
+      'treetAddress': streetAddress,
+      'country': country,
+      'town': town,
+      'postcode': postcode,
+    }, SetOptions(merge: true));
   }
 }

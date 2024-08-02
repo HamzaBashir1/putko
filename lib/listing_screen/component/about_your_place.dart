@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:putko/listing_screen/component/property_types.dart';
 import 'package:video_player/video_player.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AboutYourPlace extends StatefulWidget {
   const AboutYourPlace({super.key});
@@ -11,17 +13,39 @@ class AboutYourPlace extends StatefulWidget {
 }
 
 class _AboutYourPlaceState extends State<AboutYourPlace> {
-  late FlickManager flickManager;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    flickManager = FlickManager(
-        videoPlayerController: VideoPlayerController.networkUrl(
-        Uri.parse(
-        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4'
-        )));
+  Future<String> _addPostingInfoToFirestore() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final postingId = await _firestore.collection('postings').doc().id;
+      await _firestore.collection('postings').doc(postingId).set({
+        'propertyType': "",
+        'placeType': "",
+        'price': '',
+        'description': '',
+        'bathrooms': '',
+        'bedrooms': '',
+        'beds': '',
+        'guests': '',
+        'country': '',
+        'postcode': '',
+        'town': '',
+        'weapons': '',
+        'ownerId': user.uid,
+        'postingId': postingId,
+        // Add other fields here
+      }, SetOptions(merge: true));
+
+      // Add posting ID to user's document
+      final userRef = _firestore.collection('users').doc(user.uid);
+      await userRef.update({'myPostingIDs': FieldValue.arrayUnion([postingId])});
+
+      return postingId;
+    } else {
+      return '';
+    }
   }
 
   @override
@@ -46,7 +70,7 @@ class _AboutYourPlaceState extends State<AboutYourPlace> {
                 onPressed: () {
                   Navigator.pop(context); // Go back to previous screen
                 },
-                child: Text('Back', style: TextStyle(color: Colors.black,decoration: TextDecoration.underline),),
+                child: Text('Back', style: TextStyle(color: Colors.black, decoration: TextDecoration.underline),),
               ),
               SizedBox(
                 height: 20,
@@ -55,10 +79,11 @@ class _AboutYourPlaceState extends State<AboutYourPlace> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4FBE9F), // Add background color
                 ),
-                onPressed: () {
+                onPressed: () async {
+                  final postingId = await _addPostingInfoToFirestore();
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => PropertyTypes()),
+                    MaterialPageRoute(builder: (context) => PropertyTypes(postingId: postingId)),
                   );
                 },
                 child: Text('Next', style: TextStyle(color: Colors.white),),
@@ -68,39 +93,22 @@ class _AboutYourPlaceState extends State<AboutYourPlace> {
         ),
       ),
       body: Container(
-        margin: const EdgeInsets.only(left: 20,right:20),
+        margin: const EdgeInsets.only(left: 20, right: 20),
         child: Column(
           children: [
-
-
-            // Padding(
-            //   padding: const EdgeInsets.only(top: 80,bottom: 40),
-            //   child: Center(
-            //     child: AspectRatio(
-            //       aspectRatio: 16 / 10,
-            //         child: FlickVideoPlayer(flickManager: flickManager)
-            //     ),
-            //   ),
-            // ),
-            
             Spacer(),
-
-
             const Row(
               children: [
-                Text("Step 1",style: TextStyle(fontWeight: FontWeight.w300,fontSize: 14),),
+                Text("Step 1", style: TextStyle(fontWeight: FontWeight.w300, fontSize: 14),),
               ],
             ),
-
             const Row(
               children: [
-                Text("Tell us about \nyour place", style: TextStyle(fontSize: 28,fontWeight: FontWeight.bold),),
+                Text("Tell us about \nyour place", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),),
               ],
             ),
-
             const Text("In this step, we'll ask you which type of property you have and if guests will book the entire place or just a room. Then let us know the location and how many guests can stay.",
-            style: TextStyle(fontSize: 16),)
-
+              style: TextStyle(fontSize: 16),),
           ],
         ),
       ),

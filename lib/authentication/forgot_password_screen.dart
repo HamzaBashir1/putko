@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:putko/widget/custom_scaffold.dart';
 
 import '../widget/common_button.dart';
@@ -12,8 +14,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
-  // String _errorEmail = '';
-  // final TextEditingController _emailController = TextEditingController();
+  final emailController = TextEditingController();
 
 
   @override
@@ -60,6 +61,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           }
           return null;
         },
+        controller: emailController,
         decoration: InputDecoration(
           label: const Text('Email'),
           hintText: 'Enter Email',
@@ -88,16 +90,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     buttonText: "send",
     onTap: () async {
 
-    // try {
-    //   await FirebaseAuth.instance.sendPasswordResetEmail(
-    //     email: _emailController.text,
-    //   );
-    //   Fluttertoast.showToast(
-    //       msg:
-    //       "we have sent you email to recover password, please check email");
-    // } catch (error) {
-    //   Fluttertoast.showToast(msg: error.toString());
-    // }
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: emailController.text,
+      );
+      Fluttertoast.showToast(
+          msg:
+          "we have sent you email to recover password, please check email");
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
   },
   ),
   ],

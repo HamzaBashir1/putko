@@ -1,4 +1,10 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:putko/authentication/login_screen.dart';
 import 'package:putko/profile/components/accessibility.dart';
 import 'package:putko/profile/components/legal/open_source_license.dart';
@@ -13,10 +19,13 @@ import 'package:putko/profile/components/support/share_feedback.dart';
 import 'package:putko/profile/components/support/how_its_works.dart';
 import 'package:putko/profile/components/taxes.dart';
 import 'package:putko/profile/components/translation.dart';
-import 'package:putko/profile/components/travel_for_work.dart';
 import 'package:putko/profile/notification_screen.dart';
-import 'package:putko/widget/app_nav_bar.dart';
-import 'package:putko/widget/sticky_button.dart';
+import 'package:putko/widget/common_button.dart';
+import 'package:putko/widget/host_home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../shared/theme/colors.dart';
+import '../today_screen/today_screen.dart';
+import '../widget/guest_home_screen.dart';
 import 'components/payment_payouts.dart';
 
 class ProfileHome extends StatefulWidget {
@@ -27,21 +36,108 @@ class ProfileHome extends StatefulWidget {
 }
 
 class _ProfileHomeState extends State<ProfileHome> {
+
+  User? user;
+  String? username;
+
+  File? _image;
+  String? _imageUrl;
+
+
+  bool _isHosting = false; // Initialize _isHosting to false for new users
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfUserIsHosting();
+    _getUsername();
+    _loadImageFromFirestore();
+  }
+
+
+  _getUsername() async {
+    user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userData = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+      setState(() {
+        username = userData['username'];
+      });
+    }
+  }
+
+
+
+  _checkIfUserIsHosting() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final uid = user.uid;
+      final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
+      final userData = await docRef.get();
+      bool currentIsHosting = userData.get('isHost');
+
+      setState(() {
+        _isHosting = currentIsHosting ?? false;
+      });
+    }
+  }
+
+  Future<void> _loadImageFromFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      if (docSnap.exists) {
+        setState(() {
+          _imageUrl = docSnap['image_url'];
+        });
+      }
+    }
+  }
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-        bottomNavigationBar: const Stack(
-          children: [
-            AppNavBar(), // This will be the main bottom navigation bar
-            Positioned(
-              right: 16,
-              left: 16,
-              top: 20,
-              child: StickyButton(), // This will be the sticky button
-            ),
-          ],
-        ),
+       bottomNavigationBar: BottomAppBar(
+         color: Colors.white,
+         child: CommonButton(
+           buttonText: _isHosting ? "Switch to guest" : "Switch to hosting",
+           onTap: () async {
+             final user = FirebaseAuth.instance.currentUser;
+             if (user != null) {
+               final uid = user.uid;
+               final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
+
+               if (_isHosting) {
+                 await docRef.set({
+                   'isHost': false,
+                 }, SetOptions(merge: true));
+                 setState(() {
+                   _isHosting = false;
+                 });
+                 Navigator.pushReplacement(
+                   context,
+                   MaterialPageRoute(builder: (context) => const GuestHomeScreen()),
+                 );
+               } else {
+                 await docRef.set({
+                   'isHost': true,
+                 }, SetOptions(merge: true));
+                 setState(() {
+                   _isHosting = true;
+                 });
+                 Navigator.pushReplacement(
+                   context,
+                   MaterialPageRoute(builder: (context) => const HostHomeScreen()),
+                 );
+               }
+             }
+           },
+         ),
+       ),
         body: Padding(
           padding: const EdgeInsets.only(left: 20,right: 20),
           child: SingleChildScrollView(
@@ -96,7 +192,7 @@ class _ProfileHomeState extends State<ProfileHome> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-                        const Expanded(
+                         Expanded(
                           child: Padding(
                             padding: EdgeInsets.only(left: 12, right: 12),
                             child: Column(
@@ -104,7 +200,8 @@ class _ProfileHomeState extends State<ProfileHome> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Text(
-                                  "Hamza Bashir",
+                                  username ?? '',
+                                  // "Hamza",
                                   style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.w400,
@@ -126,11 +223,13 @@ class _ProfileHomeState extends State<ProfileHome> {
                             width: 40,
                             height: 40,
                             child: ClipRRect(
-                              borderRadius: const BorderRadius.all(Radius.circular(40.0)),
-                              child: Image.asset("images/person.png"),
+                              borderRadius: const BorderRadius.all(Radius.circular(20.0)), // changed from 40 to 20 to fit the 40x40 container
+                              child: _imageUrl!= null
+                                  ? Image.network(_imageUrl!, fit: BoxFit.cover)
+                                  : Image.asset("images/person.png", fit: BoxFit.cover),
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -272,47 +371,47 @@ class _ProfileHomeState extends State<ProfileHome> {
                   color: Colors.grey,
                 ),
 
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginSecurity()),
-                    );
-                  },
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 10, top: 16, bottom: 16, ),
-                        child: Container(
-                          width: 25,
-                          height: 25,
-                          child: const ClipRRect(
-                            borderRadius: BorderRadius.all(Radius.circular(40.0)),
-                            child: Icon(Icons.security),
-                          ),
-                        ),
-                      ),
-                      const Wrap(
-                        direction: Axis.horizontal,
-                        spacing: 140, // <-- Spacing between children
-                        children: <Widget>[
-                          Text("Login & security",
-                            style: TextStyle(
-                              fontSize: 15,
-                            ),
-                          ),
-                          // Icon(Icons.keyboard_arrow_right),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
+                // GestureDetector(
+                //   onTap: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (context) => const LoginSecurity()),
+                //     );
+                //   },
+                //   child: Row(
+                //     children: [
+                //       Padding(
+                //         padding: const EdgeInsets.only(right: 10, top: 16, bottom: 16, ),
+                //         child: Container(
+                //           width: 25,
+                //           height: 25,
+                //           child: const ClipRRect(
+                //             borderRadius: BorderRadius.all(Radius.circular(40.0)),
+                //             child: Icon(Icons.security),
+                //           ),
+                //         ),
+                //       ),
+                //       const Wrap(
+                //         direction: Axis.horizontal,
+                //         spacing: 140, // <-- Spacing between children
+                //         children: <Widget>[
+                //           Text("Login & security",
+                //             style: TextStyle(
+                //               fontSize: 15,
+                //             ),
+                //           ),
+                //           // Icon(Icons.keyboard_arrow_right),
+                //         ],
+                //       )
+                //     ],
+                //   ),
+                // ),
 
-                const Divider(
-                  thickness: 2,
-                  height: 20,
-                  color: Colors.grey,
-                ),
+                // const Divider(
+                //   thickness: 2,
+                //   height: 20,
+                //   color: Colors.grey,
+                // ),
 
                 GestureDetector(
                   onTap: () {
@@ -1097,14 +1196,30 @@ class _ProfileHomeState extends State<ProfileHome> {
                 Row(
                   children: [
                     ElevatedButton(
-                      onPressed: () {
-                        // Code to be executed when the button is pressed
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (e) => const LoginScreen(),
-                          ),
-                        );
+                      onPressed: () async {
+                        try {
+                          // Sign out from Firebase Authentication
+                          await FirebaseAuth.instance.signOut();
+
+                          // Sign out from Google Sign-In (if used)
+                          await GoogleSignIn().signOut();
+
+                          // // Sign out from Facebook Login (if used)
+                          // await FacebookAuth.instance.logOut();
+
+                          // Sign out from Apple Sign-In (if used)
+                          // await SignInWithApple.signOut();
+
+                          Fluttertoast.showToast(msg: "Logout Successfully", backgroundColor: appGreen);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (e) => const LoginScreen(),
+                            ),
+                          );
+                        } catch (error) {
+                          Fluttertoast.showToast(msg: error.toString(), backgroundColor: Colors.red);
+                        }
                       },
                       child: const Text(
                         'Log out',
@@ -1112,7 +1227,6 @@ class _ProfileHomeState extends State<ProfileHome> {
                           color: Colors.black,
                         ),
                       ),
-
                     ),
                   ],
                 ),

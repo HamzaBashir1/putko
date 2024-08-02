@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:putko/widget/host_navbar.dart';
+import 'package:putko/widget/host_home_screen.dart';
 
-import '../widget/app_nav_bar.dart';
+import '../widget/guest_home_screen.dart';
 
 class HostMessage extends StatefulWidget {
   const HostMessage({super.key});
@@ -15,7 +15,7 @@ class _HostMessageState extends State<HostMessage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: HostNavbar(),
+      // bottomNavigationBar: HostNavbar(),
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,

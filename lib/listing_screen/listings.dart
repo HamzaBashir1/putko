@@ -1,6 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:putko/listing_screen/component/get_started_ui.dart';
-import 'package:putko/widget/host_navbar.dart';
+import 'package:putko/widget/host_home_screen.dart';
 
 class Listings extends StatefulWidget {
   const Listings({super.key});
@@ -11,6 +12,28 @@ class Listings extends StatefulWidget {
 
 class _ListingsState extends State<Listings> {
   bool _isGridView = false; // Add this variable
+  List<String> _imageUrls = []; // Add this list to store image URLs
+  List<String> _titles = []; // Add this list to store titles
+
+
+  @override
+  void initState() {
+    super.initState();
+    _getImageUrls(); // Call this function to retrieve image URLs
+  }
+
+  Future<void> _getImageUrls() async {
+    final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+    final QuerySnapshot snapshot = await _firestore.collection('postings').get();
+    for (var doc in snapshot.docs) {
+      if (doc.get('photos') != null && doc.get('photos').isNotEmpty) {
+        _imageUrls.add(doc.get('photos')[0]); // Retrieve only the first image URL
+        _titles.add(doc.get('title')); // Retrieve the title
+        break; // Stop iterating over the documents
+      }
+    }
+    setState(() {}); // Update the UI
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +64,7 @@ class _ListingsState extends State<Listings> {
           ),
         ],
       ),
-      bottomNavigationBar: const HostNavbar(),
+      // bottomNavigationBar: const HostHomeScreen(),
       body: Padding(
         padding: const EdgeInsets.only(left: 20, right: 20),
         child: Column(
@@ -49,12 +72,14 @@ class _ListingsState extends State<Listings> {
             const Text("Your listings", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),),
             const SizedBox(height: 40,),
             Expanded(
-              child: _isGridView
+              child: _imageUrls.isEmpty
+                  ? Center(child: CircularProgressIndicator()) // Show a loading indicator
+                  : _isGridView
                   ? GridView.builder( // Show grid view
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 1, // One item per row
                 ),
-                itemCount: 2, // Number of items
+                itemCount: 1, // Number of items
                 itemBuilder: (context, index) {
                   return GridTile(
                     child: Column(
@@ -65,21 +90,17 @@ class _ListingsState extends State<Listings> {
                           child: Container(
                             height: 169, // Set a fixed height
                             width: double.infinity, // Set the width to match the parent
-                            child: Image.asset('images/introduction.jpg', fit: BoxFit.cover),
+                            child: Image.network(_imageUrls[0], fit: BoxFit.cover),
                           ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.all(10.0),
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Amazing Opportunity',
+                              _titles[index], // Display the title
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                'Greater London, England',
-                                style: TextStyle(fontSize: 14),
                               ),
                             ],
                           ),
@@ -90,17 +111,16 @@ class _ListingsState extends State<Listings> {
                 },
               )
                   : ListView.builder( // Show list view
-                itemCount: 2, // Number of items
+                itemCount: 1, // Number of items
                 itemBuilder: (context, index) {
                   return Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: <Widget>[
-                          Image.asset('images/introduction.jpg', width: 100, height: 100,),
-
-                          const Text(
-                            'Amazing Opportunity',
+                          Image.network(_imageUrls[0], width: 100, height: 100,),
+                          Text(
+                            _titles[index], // Display the title
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],

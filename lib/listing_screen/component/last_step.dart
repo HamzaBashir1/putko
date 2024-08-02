@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:putko/listing_screen/component/thanks.dart';
 
 class LastStep extends StatefulWidget {
-  const LastStep({super.key});
+  final String postingId;
+  const LastStep({super.key, required this.postingId});
 
   @override
   State<LastStep> createState() => _LastStepState();
@@ -13,6 +15,8 @@ class _LastStepState extends State<LastStep> {
   bool _securityCameras = false;
   bool _decibelMonitors = false;
   bool _weapons = false;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +49,13 @@ class _LastStepState extends State<LastStep> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4FBE9F), // Add background color
                 ),
-                onPressed: (){
+                onPressed: () async {
+                  await _firestore.collection('postings').doc(widget.postingId).set({
+                    'securityCameras': _securityCameras,
+                    'decibelMonitors': _decibelMonitors,
+                    'weapons': _weapons,
+                  }, SetOptions(merge: true));
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => Thanks()),
@@ -133,9 +143,9 @@ class _LastStepState extends State<LastStep> {
             ),
 
             Text("Security cameras that monitor indoor spaces are not allowed even if they're turned off. All exterior security cameras must be disclosed.",
-            style: TextStyle(
-              fontSize: 16,
-            ),
+              style: TextStyle(
+                fontSize: 16,
+              ),
             ),
 
             SizedBox(
@@ -144,7 +154,7 @@ class _LastStepState extends State<LastStep> {
 
             Text("Be sure to comply with your laws and review Putko's anti-discrimination policy and guest and Host fees."
               , style: TextStyle(
-                fontSize: 16
+                  fontSize: 16
               ),
             ),
 

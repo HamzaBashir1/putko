@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:putko/listing_screen/component/price.dart';
 
 class GuestType extends StatefulWidget {
-  const GuestType({super.key});
+  final String postingId;
+  const GuestType({super.key, required this.postingId});
 
   @override
   State<GuestType> createState() => _GuestTypeState();
@@ -11,6 +13,8 @@ class GuestType extends StatefulWidget {
 class _GuestTypeState extends State<GuestType> {
 
   String? _selectedGuestType;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -44,10 +48,14 @@ class _GuestTypeState extends State<GuestType> {
                   backgroundColor: const Color(0xFF4FBE9F), // Add background color
                 ),
                 onPressed: _selectedGuestType!= null
-                    ? () {
+                    ? () async {
+                  await _firestore.collection('postings').doc(widget.postingId).set({
+                    'guestType': _selectedGuestType,
+                  }, SetOptions(merge: true));
+
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Price()),
+                    MaterialPageRoute(builder: (context) => Price(postingId: widget.postingId)),
                   );
                 }
                     : null,
@@ -157,7 +165,7 @@ class _GuestTypeState extends State<GuestType> {
                           ),
                           SizedBox(height: 10.0),
                           Text(
-                            'For your first guest, welcome \nsomeone with a good track record\non putko who can offer tips for how\nto be a great Host.',
+                            'For your first guest, welcome \nsomeone witha good track record\non putko who can offer tips for how\nto be a great Host.',
                             style: TextStyle(fontSize: 14.0),
                           ),
                         ],
@@ -177,6 +185,10 @@ class _GuestTypeState extends State<GuestType> {
                 ),
               ),
             ),
+
+
+
+
 
           ],
         ),

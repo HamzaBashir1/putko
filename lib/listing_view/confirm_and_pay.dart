@@ -1,37 +1,71 @@
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_paypal_payment/flutter_paypal_payment.dart';
 import 'package:putko/listing_view/availability.dart';
+import 'package:putko/messages/chat_page.dart';
 import 'package:putko/widget/common_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pay/pay.dart';
+import '../payment_gateway/payment_config.dart';
+
+
 
 class ConfirmAndPay extends StatefulWidget {
-  const ConfirmAndPay({super.key});
+  final DocumentSnapshot documentSnapshot;
+  const ConfirmAndPay({super.key, required this.documentSnapshot});
 
   @override
   State<ConfirmAndPay> createState() => _ConfirmAndPayState();
 }
-
 class _ConfirmAndPayState extends State<ConfirmAndPay> {
 
-  String _groupValue = 'now';
+  void onApplePayResult(paymentResult) {
+    debugPrint(paymentResult.toString());
+  }
 
-  double _amount = 58.93;
-  int _nights = 5;
-  double _result =0;
+  int index = 0;
+  String _groupValue = 'now';
+  late double _amount;
+  late double _result;
+  late double _total;
+  final int _nights = 5;
 
   @override
   void initState() {
     super.initState();
-    _calculateResult();
+    _amount = widget.documentSnapshot['price'] != null ? widget.documentSnapshot['price'].toDouble() : 0.0;
+    _result = _amount * _nights;
+    _total = _result + 55.19 + 6.74;
+    _retrieveSelectedDaysLocally();
   }
 
   void _calculateResult() {
     setState(() {
       _result = _amount * _nights;
+      _total = _result + 55.19 + 6.74;
     });
   }
 
+  List<DateTime> _selectedDays = [];
+
+  Future<void> _retrieveSelectedDaysLocally() async {
+    final prefs = await SharedPreferences.getInstance();
+    final selectedDaysJson = prefs.getStringList('selected_days');
+    if (selectedDaysJson!= null) {
+      setState(() {
+        _selectedDays = selectedDaysJson.map((json) => DateTime.parse(json)).toList();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.documentSnapshot == null) {
+      return const Center(child: Text('No document snapshot available'));
+    }
+
+    final snap = widget.documentSnapshot;
     _calculateResult();
     return Scaffold(
       backgroundColor: Colors.white,
@@ -54,26 +88,26 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Image.asset("images/bed.jpg", width: 120, fit: BoxFit.cover),
+                          child: Image.network(widget.documentSnapshot['photos'][index], width: 120, fit: BoxFit.cover),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 16), // add some space between the image and the text
-                  const Expanded(
+                  Expanded(
                     flex: 2, // make the text column take up more space
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Property title", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                        Text("Room in Condo", style: TextStyle(fontSize: 14)),
+                        Text("${widget.documentSnapshot['title']}", style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                        Text("${widget.documentSnapshot['placeType']} in ${widget.documentSnapshot['propertyType']}", style: const TextStyle(fontSize: 14)),
 
-                        Row(
+                        const Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Icon(Icons.star, color: Colors.black, size: 14),
                             SizedBox(width: 4),
-                            Text('4.89 (142)', style: TextStyle(fontSize: 14)),
+                            Text('4.89 ', style: TextStyle(fontSize: 14)),
                             SizedBox(width: 10),
                             Icon(Icons.verified_user, color: Colors.black, size: 14),
                             SizedBox(width: 4),
@@ -86,40 +120,40 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                 ],
               ),
 
+              // const SizedBox(
+              //   height: 15,
+              // ),
+              //
+              // const Divider(
+              //   thickness: 1,
+              //   color: Colors.grey,
+              //   height: 20,
+              // ),
               const SizedBox(
                 height: 15,
               ),
 
-              const Divider(
-                thickness: 1,
-                color: Colors.grey,
-                height: 20,
-              ),
-              const SizedBox(
-                height: 15,
-              ),
-
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // add this
-                children: [
-                  Expanded( // wrap with Expanded
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start, // add this
-                      children: [
-                        Text("Free cancellation before Aug 8.", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-                        Text("Get a full refund if you change your mind.", style: TextStyle(fontSize: 16),)
-                      ],
-                    ),
-                  ),
-                  Padding( // add some padding around the icon
-                    padding: EdgeInsets.only(left: 16),
-                    child: Icon(Icons.calendar_month, size: 24), // adjust icon size
-                  )
-                ],
-              ),
-              const SizedBox(
-                height: 20,
-              ),
+              // const Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween, // add this
+              //   children: [
+              //     Expanded( // wrap with Expanded
+              //       child: Column(
+              //         crossAxisAlignment: CrossAxisAlignment.start, // add this
+              //         children: [
+              //           Text("Free cancellation before Aug 8.", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+              //           Text("Get a full refund if you change your mind.", style: TextStyle(fontSize: 16),)
+              //         ],
+              //       ),
+              //     ),
+              //     Padding( // add some padding around the icon
+              //       padding: EdgeInsets.only(left: 16),
+              //       child: Icon(Icons.calendar_month, size: 24), // adjust icon size
+              //     )
+              //   ],
+              // ),
+              // const SizedBox(
+              //   height: 20,
+              // ),
 
               const Divider(
                 thickness: 6,
@@ -145,23 +179,22 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                 children: [
 
                   const Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-
                       Text("Dates",style: TextStyle(fontSize: 20),),
 
-                      Text("Aug 13 -18",style: TextStyle(fontSize: 16),)
+                      Text("",style: TextStyle(fontSize: 16),)
                     ],
                   ),
 
                   GestureDetector(
-                    onTap: (){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const Availability()),
-                      );
-                    },
-                      child: const Text("Edit",style: TextStyle(fontSize: 18,decoration: TextDecoration.underline),))
+                      onTap: (){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => Availability(documentSnapshot: snap)),
+                        );
+                      },
+                      child: const Text("Edit",style: TextStyle(fontSize: 18,decoration: TextDecoration.underline))
+                  ),
 
                 ],
               ),
@@ -176,13 +209,11 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
 
-                  const Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                  Column(
                     children: [
+                      const Text("Guests",style: TextStyle(fontSize: 20),),
 
-                      Text("Guests",style: TextStyle(fontSize: 20),),
-
-                      Text("1 guest",style: TextStyle(fontSize: 16),)
+                      Text("${widget.documentSnapshot['guests']} guest",style: const TextStyle(fontSize: 16),)
                     ],
                   ),
 
@@ -219,45 +250,45 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
               ),
 
 
-                 Column(
-                   mainAxisAlignment: MainAxisAlignment.center,
-                   children: [
-                     RadioListTile(
-                        title: const Text('Pay £404.45 now'),
-                        value: 'now',
-                        groupValue: _groupValue,
-                         onChanged: (value) {
-                         setState(() {
-                         _groupValue = value!;
-                        });
-                         },
-                     ),
-                      RadioListTile(
-                        title: const Text('Pay part now, part later'),
-                        subtitle: const Text(
-                        '£202.23 due today, £202.22 on Jul 31, 2024. No extra fees. More info'),
-                         value: 'part',
-                          groupValue: _groupValue,
-                          onChanged: (value) {
-                          setState(() {
-                           _groupValue = value!;
-                           });
-                          },
-                      ),
-                      RadioListTile(
-                        title: const Text('Pay in 3 payments with Klarna'),
-                        subtitle: const Text(
-                        '3 payments of £134.81 each (0% APR)!. More info'),
-                        value: 'klarna',
-                        groupValue: _groupValue,
-                        onChanged: (value) {
-                        setState(() {
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  RadioListTile(
+                    title: Text('Pay €${widget.documentSnapshot['price']} now'),
+                    value: 'now',
+                    groupValue: _groupValue,
+                    onChanged: (value) {
+                      setState(() {
                         _groupValue = value!;
-                        });
-                        },
-                      ),
-                  ],
-                 ),
+                      });
+                    },
+                  ),
+                  // RadioListTile(
+                  //   title: const Text('Pay part now, part later'),
+                  //   subtitle: const Text(
+                  //       '£202.23 due today, £202.22 on Jul 31, 2024. No extra fees. More info'),
+                  //   value: 'part',
+                  //   groupValue: _groupValue,
+                  //   onChanged: (value) {
+                  //     setState(() {
+                  //       _groupValue = value!;
+                  //     });
+                  //   },
+                  // ),
+                  // RadioListTile(
+                  //   title: const Text('Pay in 3 payments with Klarna'),
+                  //   subtitle: const Text(
+                  //       '3 payments of £134.81 each (0% APR)!. More info'),
+                  //   value: 'klarna',
+                  //   groupValue: _groupValue,
+                  //   onChanged: (value) {
+                  //     setState(() {
+                  //       _groupValue = value!;
+                  //     });
+                  //   },
+                  // ),
+                ],
+              ),
 
               const SizedBox(
                 height: 20,
@@ -288,32 +319,13 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
 
                   Column(
                     children: [
-                      Text("€${_amount.toStringAsFixed(2)} * ${_nights} nights", style: const TextStyle(fontSize: 16),)
+                      Text("€${_amount.toStringAsFixed(2)} * $_nights nights", style: const TextStyle(fontSize: 16),)
                     ],
                   ),
 
                   Column(
                     children: [
                       Text("€${_result.toStringAsFixed(2)}")
-                    ],
-                  )
-
-                ],
-              ),
-
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-
-                  Column(
-                    children: [
-                      Text("Cleaning fee", style: TextStyle(fontSize: 16),),
-                    ],
-                  ),
-
-                  Column(
-                    children: [
-                      Text("€6.74")
                     ],
                   )
 
@@ -358,24 +370,24 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                 ],
               ),
 
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-
-                  Column(
-                    children: [
-                      Text("Taxes", style: TextStyle(fontSize: 16),),
-                    ],
-                  ),
-
-                  Column(
-                    children: [
-                      Text("€47.87")
-                    ],
-                  ),
-
-                ],
-              ),
+              // const Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //
+              //     Column(
+              //       children: [
+              //         Text("Taxes", style: TextStyle(fontSize: 16),),
+              //       ],
+              //     ),
+              //
+              //     Column(
+              //       children: [
+              //         Text("€47.87")
+              //       ],
+              //     ),
+              //
+              //   ],
+              // ),
 
               const Divider(
                 height: 20,
@@ -383,11 +395,11 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                 color: Colors.grey,
               ),
 
-              const Row(
+               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
 
-                  Column(
+                  const Column(
                     children: [
                       Text("Total", style: TextStyle(fontSize: 16),),
                     ],
@@ -395,7 +407,7 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
 
                   Column(
                     children: [
-                      Text("€50")
+                      Text("€${_total.toStringAsFixed(2)}")
                     ],
                   )
 
@@ -436,13 +448,129 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                         ],
                       ),
 
-                      Row(
+                      Column(
                         children: [
-                          Image.asset("images/mastercard.jpg",width: 40,),
-                          Image.asset("images/paypal.jpg",width: 40,),
-                          Image.asset("images/stripe.png",width: 40,),
-                          Image.asset("images/gpay.png",width: 40,),
-                          Image.asset("images/applepay.png",width: 40,),
+
+                          // Image.asset("images/stripe.png",width: 40,),
+
+                          TextButton(
+                          onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                          builder: (BuildContext context) => PaypalCheckoutView(
+                          sandboxMode: true,
+                          clientId: "AYPYPs4Y1t-fcH1-prbDyfACPdGILvlJWO8xP4zmQJ6xuNanIw9xZBfFxABD4wyXtYVPzxktNgHejiuu",
+                          secretKey: "EJG0r5aA3HCvsGCBV3X63aWi19BGSTOFOLWjey-39u5i7M2H2idyewbq4dvdyG1wKpVtenp_lAnepXCg",
+                          transactions: const [
+                          {
+                          "amount": {
+                          "total": '100',
+                          "currency": "USD",
+                          "details": {
+                          "subtotal": '100',
+                          "shipping": '0',
+                          "shipping_discount": 0
+                          }
+                          },
+                          "description": "The payment transaction description.",
+                          // "payment_options": {
+                          //   "allowed_payment_method":
+                          //       "INSTANT_FUNDING_SOURCE"
+                          // },
+                          "item_list": {
+                          "items": [
+                          {
+                          "name": "Apple",
+                          "quantity": 4,
+                          "price": '10',
+                          "currency": "USD"
+                          },
+                          {
+                          "name": "Pineapple",
+                          "quantity": 5,
+                          "price": '12',
+                          "currency": "USD"
+                          }
+                          ],
+
+                          // Optional
+                          //   "shipping_address": {
+                          //     "recipient_name": "Tharwat samy",
+                          //     "line1": "tharwat",
+                          //     "line2": "",
+                          //     "city": "tharwat",
+                          //     "country_code": "EG",
+                          //     "postal_code": "25025",
+                          //     "phone": "+00000000",
+                          //     "state": "ALex"
+                          //  },
+                          }
+                          }
+                          ],
+                          note: "Contact us for any questions on your order.",
+                          onSuccess: (Map params) async {
+                          log("onSuccess: $params");
+                          Navigator.pop(context);
+                          },
+                          onError: (error) {
+                          log("onError: $error");
+                          Navigator.pop(context);
+                          },
+                          onCancel: () {
+                          print('cancelled:');
+                          Navigator.pop(context);
+                          },
+                          ),
+                          ));
+                          },
+                          child: const Text('Pay with paypal'),
+                          ),
+                          SizedBox(
+                            width: 180,
+                            child: GooglePayButton(
+                              paymentConfiguration: PaymentConfiguration.fromJsonString(defaultGooglePay),
+                              paymentItems: [
+                                PaymentItem(
+                                  label: 'Total Amount',
+                                  amount: _total.toString(),
+                                  status: PaymentItemStatus.final_price,
+                                ),
+                              ],
+                              type: GooglePayButtonType.pay,
+                              margin: const EdgeInsets.only(top: 15.0),
+                              onPaymentResult: (result) {
+                                print("Payment Result = $result");
+                              },
+                            ),
+                          ),
+
+                          ApplePayButton(
+                            paymentConfiguration:
+                            PaymentConfiguration.fromJsonString(
+                                defaultApplePay),
+                            paymentItems: [
+                              PaymentItem(
+                                label: 'Booking Amount',
+                                amount: _total.toString(),
+                                status: PaymentItemStatus.final_price,
+                              ),
+                            ],
+                            style: ApplePayButtonStyle.black,
+                            width: double.infinity,
+                            // height: 50,
+                            type: ApplePayButtonType.buy,
+                            margin: const EdgeInsets.only(top: 15.0),
+                            onPaymentResult: (result) {
+                              print("Payment Result = $result");
+                            },
+                            loadingIndicator: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+
+
+
+
+
                         ],
                       ),
                     ],
@@ -466,6 +594,8 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                   )
                 ],
               ),
+
+
 
               const SizedBox(
                 height: 20,
@@ -512,7 +642,12 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                     child: Column(
                       children: [
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) =>   ChatPage(ownerId: widget.documentSnapshot['ownerId'], )),
+                            );
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -557,7 +692,9 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                     child: Column(
                       children: [
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -588,32 +725,32 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
                 height: 5,
               ),
 
-              const Row(
-                children: [
-                  Text("Cancellation policy", style: TextStyle(fontWeight: FontWeight.bold,fontSize: 24),)
-                ],
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-
-              const Column(
-                children: [
-
-                  Text("Free cancellation for 48 hours. Cancel before Aug 24 for a partial refund.",style: TextStyle(fontSize: 16),)
-
-                ],
-              ),
-
-              const SizedBox(
-                height: 20,
-              ),
-
-              const Divider(
-                thickness: 6,
-                color: Color(0xffebebeb),
-                height: 20,
-              ),
+              // const Row(
+              //   children: [
+              //     Text("Cancellation policy", style: TextStyle(fontWeight: FontWeight.bold,fontSize: 24),)
+              //   ],
+              // ),
+              // const SizedBox(
+              //   height: 20,
+              // ),
+              //
+              // const Column(
+              //   children: [
+              //
+              //     Text("Free cancellation for 48 hours. Cancel before Aug 24 for a partial refund.",style: TextStyle(fontSize: 16),)
+              //
+              //   ],
+              // ),
+              //
+              // const SizedBox(
+              //   height: 20,
+              // ),
+              //
+              // const Divider(
+              //   thickness: 6,
+              //   color: Color(0xffebebeb),
+              //   height: 20,
+              // ),
               const SizedBox(
                 height: 5,
               ),
@@ -651,7 +788,7 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
               ),
 
               const Divider(
-                thickness: 6,
+                thickness:6,
                 color: Color(0xffebebeb),
                 height: 20,
               ),
@@ -694,9 +831,9 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
               const SizedBox(
                 height: 5,
               ),
-              
+
               const Text("By selecting the button below, I agree to the following: The Host's House Rules, Ground rules for guests, Putko's Rebooking and Refund Policy, That Putko can charge my payment method if I'm responsible for damage To pay the total amount shown if the Host accepts my booking request Payment Terms between you and Putko Payments.",
-              style: TextStyle(fontSize: 12),
+                style: TextStyle(fontSize: 12),
               ),
 
               const SizedBox(
@@ -704,12 +841,133 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
               ),
 
               CommonButton(
-                onTap: (){
-
-                },
                 buttonText: "Request to book",
-              )
+                onTap: () {
+                  // You can show a dialog or navigate to a new screen here
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Select a payment method:'),
+                            const SizedBox(height: 10),
+                            GooglePayButton(
+                              paymentConfiguration: PaymentConfiguration.fromJsonString(defaultGooglePay),
+                              paymentItems: [
+                                PaymentItem(
+                                  label: 'Total Amount',
+                                  amount: _total.toString(),
+                                  status: PaymentItemStatus.final_price,
+                                ),
+                              ],
+                              type: GooglePayButtonType.pay,
+                              margin: const EdgeInsets.only(top: 15.0),
+                              onPaymentResult: (result) {
+                                print("Payment Result = $result");
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                            ApplePayButton(
+                              paymentConfiguration: PaymentConfiguration.fromJsonString(defaultApplePay),
+                              paymentItems: [
+                                PaymentItem(
+                                  label: 'Booking Amount',
+                                  amount: _total.toString(),
+                                  status: PaymentItemStatus.final_price,
+                                ),
+                              ],
+                              style: ApplePayButtonStyle.black,
+                              width: double.infinity,
+                              type: ApplePayButtonType.buy,
+                              margin: const EdgeInsets.only(top: 15.0),
+                              onPaymentResult: (result) {
+                                print("Payment Result = $result");
+                              },
+                              loadingIndicator: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (BuildContext context) => PaypalCheckoutView(
+                                    sandboxMode: true,
+                                    clientId: "AYPYPs4Y1t-fcH1-prbDyfACPdGILvlJWO8xP4zmQJ6xuNanIw9xZBfFxABD4wyXtYVPzxktNgHejiuu",
+                                    secretKey: "EJG0r5aA3HCvsGCBV3X63aWi19BGSTOFOLWjey-39u5i7M2H2idyewbq4dvdyG1wKpVtenp_lAnepXCg",
+                                    transactions: const [
+                                      {
+                                        "amount": {
+                                          "total": '100',
+                                          "currency": "EUR",
+                                          "details": {
+                                            "subtotal": '100',
+                                            "shipping": '0',
+                                            "shipping_discount": 0
+                                          }
+                                        },
+                                        "description": "The payment transaction description.",
+                                        // "payment_options": {
+                                        //   "allowed_payment_method":
+                                        //       "INSTANT_FUNDING_SOURCE"
+                                        // },
+                                        "item_list": {
+                                          "items": [
+                                            {
+                                              "name": "Apple",
+                                              "quantity": 4,
+                                              "price": '10',
+                                              "currency": "USD"
+                                            },
+                                            {
+                                              "name": "Pineapple",
+                                              "quantity": 5,
+                                              "price": '12',
+                                              "currency": "USD"
+                                            }
+                                          ],
 
+                                          // Optional
+                                          //   "shipping_address": {
+                                          //     "recipient_name": "Tharwat samy",
+                                          //     "line1": "tharwat",
+                                          //     "line2": "",
+                                          //     "city": "tharwat",
+                                          //     "country_code": "EG",
+                                          //     "postal_code": "25025",
+                                          //     "phone": "+00000000",
+                                          //     "state": "ALex"
+                                          //  },
+                                        }
+                                      }
+                                    ],
+                                    note: "Contact us for any questions on your order.",
+                                    onSuccess: (Map params) async {
+                                      log("onSuccess: $params");
+                                      Navigator.pop(context);
+                                    },
+                                    onError: (error) {
+                                      log("onError: $error");
+                                      Navigator.pop(context);
+                                    },
+                                    onCancel: () {
+                                      print('cancelled:');
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ));
+                              },
+                              child: const Text('Pay with paypal'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -717,3 +975,4 @@ class _ConfirmAndPayState extends State<ConfirmAndPay> {
     );
   }
 }
+

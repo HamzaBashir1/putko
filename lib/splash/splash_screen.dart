@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:putko/authentication/signup_screen.dart';
@@ -119,3 +120,5 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
+
+
