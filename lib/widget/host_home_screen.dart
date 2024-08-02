@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
-import 'package:putko/messages/message_home.dart';
+import 'package:putko/messages/host_message.dart';
 import 'package:putko/profile/profile_home.dart';
-import 'package:putko/screens/home_screen.dart';
-import 'package:putko/trips/trips_home.dart';
-import 'package:putko/wishlists/wishlist_screen.dart';
+import 'package:putko/calendar_screen/calendar.dart';
+import 'package:putko/listing_screen/listings.dart';
+import 'package:putko/today_screen/today_screen.dart';
 
 import '../shared/theme/colors.dart';
 
-class AppNavBar extends StatefulWidget {
-  const AppNavBar({super.key});
+class HostNavbar extends StatefulWidget {
+  const HostNavbar({super.key});
 
   @override
-  _AppNavBarState createState() => _AppNavBarState();
+  State<HostNavbar> createState() => _HostNavbarState();
 }
 
-class _AppNavBarState extends State<AppNavBar> {
+class _HostNavbarState extends State<HostNavbar> {
   int _selectedIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -35,7 +34,7 @@ class _AppNavBarState extends State<AppNavBar> {
       child: NavigationBarTheme(
         data: NavigationBarThemeData(
           labelTextStyle: MaterialStatePropertyAll(
-            Theme.of(context).textTheme.bodySmall!.copyWith(color: appRed),
+            Theme.of(context).textTheme.bodySmall!.copyWith(color: appGreen),
           ),
         ),
         child: NavigationBar(
@@ -51,23 +50,15 @@ class _AppNavBarState extends State<AppNavBar> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (e) => const HomeScreen(),
+                    builder: (e) => const TodayScreen(),
                   ),
                 );
                 break;
-              // case 1:
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (e) => const WishlistScreen(),
-              //     ),
-              //   );
-              //   break;
               case 1:
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (e) => const TripsHome(),
+                    builder: (e) => const Calendar(),
                   ),
                 );
                 break;
@@ -75,11 +66,19 @@ class _AppNavBarState extends State<AppNavBar> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (e) => const MessageHome(),
+                    builder: (e) => const Listings(),
                   ),
                 );
                 break;
               case 3:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (e) => const HostMessage(),
+                  ),
+                );
+                break;
+              case 4:
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -94,43 +93,43 @@ class _AppNavBarState extends State<AppNavBar> {
           height: 56.0,
           destinations: const [
             NavigationDestination(
-              icon: Icon(Icons.search_outlined),
-              label: 'Explore',
+              icon: Icon(Icons.today_outlined),
+              label: 'Today',
               selectedIcon: Icon(
-                LucideIcons.search,
-                color: appRed,
+                Icons.today_outlined,
+                color: appBlack,
               ),
             ),
-            // NavigationDestination(
-            //   icon: Icon(Icons.favorite_border_outlined),
-            //   label: 'Wishlist',
-            //   selectedIcon: Icon(
-            //     Icons.favorite,
-            //     color: appRed,
-            //   ),
-            // ),
             NavigationDestination(
-              icon: Icon(Icons.wb_sunny_outlined),
-              label: 'Trips',
+              icon: Icon(Icons.calendar_month),
+              label: 'Calendar',
               selectedIcon: Icon(
-                Icons.wb_sunny,
-                color: appRed,
+                Icons.calendar_month,
+                color: appBlack,
+              ),
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.library_add_check),
+              label: 'Listings',
+              selectedIcon: Icon(
+                Icons.library_add_check,
+                color: appBlack,
               ),
             ),
             NavigationDestination(
               icon: Icon(Icons.message_outlined),
-              label: 'Inbox',
+              label: 'Message',
               selectedIcon: Icon(
-                Icons.message,
-                color: appRed,
+                Icons.message_outlined,
+                color: appBlack,
               ),
             ),
             NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              label: 'Profile',
+              icon: Icon(Icons.menu),
+              label: 'Menu',
               selectedIcon: Icon(
-                Icons.person,
-                color: appRed,
+                Icons.menu,
+                color: appGreen,
               ),
             ),
           ],
